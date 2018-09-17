@@ -1,0 +1,15 @@
+netty:
+  port: 7878
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.1.61:3306/acs?characterEncoding=utf-8&useSSL=false
+    username: acs
+    password: acs2018
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 10000
+      read-only: false
+
