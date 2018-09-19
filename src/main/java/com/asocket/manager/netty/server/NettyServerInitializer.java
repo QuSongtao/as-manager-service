@@ -3,24 +3,26 @@ package com.asocket.manager.netty.server;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.CharsetUtil;
 
+/**
+ * 服务端通道初始化
+ *
+ * @author qust
+ * @version 1.0 20180918
+ */
 public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
     /**
      * 初始化channel
+     * <p>
+     * 注: 通信底层采用字节传递,因此在此无需进行编码与解码
+     *
+     * @author qust
      */
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-        pipeline.addLast(new StringDecoder(CharsetUtil.UTF_8));
-        pipeline.addLast(new StringEncoder(CharsetUtil.UTF_8));
+        // 配置服务端消息处理器
         pipeline.addLast(new NettyServerHandler());
     }
-
 }
