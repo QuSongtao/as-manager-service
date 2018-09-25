@@ -40,7 +40,7 @@ public class NettyServer {
             server.childOption(ChannelOption.SO_KEEPALIVE, true);
             server.childHandler(new NettyServerInitializer());
 
-            // 绑定端口,开始接收进来的连接
+            // 绑定端口,侦听客户端连接
             ChannelFuture channelFuture = server.bind(port).sync();
             LOGGER.info("通信服务端启动成功,端口:[" + port + "]等待客户端连接 ");
             // 等待服务器socket关闭

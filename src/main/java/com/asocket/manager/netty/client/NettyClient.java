@@ -1,10 +1,5 @@
-/*
-成都太阳高科技有限责任公司
-http://www.suncd.com
-*/
 package com.asocket.manager.netty.client;
 
-import com.asocket.manager.netty.demo.TimeClientHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -28,7 +23,7 @@ public class NettyClient {
 
     public void startClient() {
         String host = "192.168.0.105";
-        int port = 7879;
+        int port = 7878;
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
@@ -39,7 +34,7 @@ public class NettyClient {
             client.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new TimeClientHandler());
+                    ch.pipeline().addLast(new NettyClientHandler());
                 }
             });
 

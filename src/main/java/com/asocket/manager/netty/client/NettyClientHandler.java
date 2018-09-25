@@ -1,60 +1,59 @@
-/*
-成都太阳高科技有限责任公司
-http://www.suncd.com
-*/
 package com.asocket.manager.netty.client;
 
+import com.asocket.manager.system.Const;
 import com.asocket.manager.util.ByteUtils;
+import com.asocket.manager.util.MsgCreator;
+import com.asocket.manager.vo.SzHeader;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
-    @Autowired
-    private NettyClientThread nettyClientThread;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyClientHandler.class);
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        while (true){
-//            byte[][] b = new byte[8][];
-//            b[0] = ByteUtils.toHH(16);
-//            b[1] = ByteUtils.toHH(10);
-//            b[2] = ByteUtils.toHH(1);
-//            b[3] ="cgx1".getBytes();
-//            b[4] = ByteUtils.toHH(17);
-//            b[5] = ByteUtils.toHH(20);
-//            b[6] = ByteUtils.toHH(2);
-//            b[7] ="cgx22".getBytes();
-//            LOGGER.info("start");
-//            ByteBuf req = ctx.alloc().buffer(33);
-//            req.writeBytes(ByteUtils.bbToBytes(b,33));
-//            ctx.writeAndFlush(req);
-//            Thread.sleep(2500);
-//            LOGGER.info("end");
-//        }
-        // 启动发送
+        // 启动业务消息发送
         Thread sender = new Thread(new ClientSender(ctx.channel()));
         sender.start();
+
+        // 启动心跳消息发送
+        Thread heartBeat = new Thread(new HeartBeat(ctx.channel()));
+        heartBeat.start();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ByteBuf m = (ByteBuf) msg;
-        byte[] msgBytes = new byte[m.readableBytes()];
-        m.readBytes(msgBytes);
-        System.out.println("长度:" + msgBytes.length);
-        System.out.println("收到服务器响应长度: " + ByteUtils.hBytesToInt(ByteUtils.subBytes(msgBytes, 0, 4)));
-        System.out.println("收到服务器报文ID为: " + ByteUtils.hBytesToInt(ByteUtils.subBytes(msgBytes, 4, 4)));
-        System.out.println("收到服务器消息序号: " + ByteUtils.hBytesToInt(ByteUtils.subBytes(msgBytes, 8, 4)));
-        m.release();
+        ByteBuf msgBuf = (ByteBuf) msg;
+        byte[] msgBytes = new byte[msgBuf.readableBytes()];
+        msgBuf.readBytes(msgBytes);
+        int msgLen = msgBytes.length;
+
+        if (msgLen >= Const.HEAD_LEN) {
+            // 截取0-20位消息头
+            byte[] header = ByteUtils.subBytes(msgBytes, 0, Const.HEAD_LEN);
+            SzHeader szHeader = MsgCreator.createRecvHeader(header);
+            processRecv(szHeader);
+
+            // 截取剩余数据
+            byte[] restHeader = ByteUtils.subBytes(msgBytes, Const.HEAD_LEN, msgLen - Const.HEAD_LEN);
+            while (restHeader.length > 0) {
+                header = ByteUtils.subBytes(restHeader, 0, Const.HEAD_LEN);
+                szHeader = MsgCreator.createRecvHeader(header);
+                processRecv(szHeader);
+
+                // 继续截取剩余数据
+                restHeader = ByteUtils.subBytes(restHeader, Const.HEAD_LEN, msgLen - Const.HEAD_LEN);
+            }
+        }
+
+        // 释放缓冲区
+        msgBuf.release();
     }
 
     @Override
@@ -65,5 +64,12 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
         // 关闭连接
         ctx.close();
+    }
+
+    private void processRecv(SzHeader szHeader){
+        LOGGER.info("客户端收到消息头:{}", szHeader.toString());
+        // 1.获取消息头类型,只取正常响应的
+
+        // 2.处理数据更新
     }
 }

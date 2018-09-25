@@ -1,4 +1,3 @@
-
 package com.asocket.manager.netty.client;
 
 import com.asocket.manager.system.Const;
@@ -8,29 +7,27 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClientSender implements Runnable {
+/**
+ * 发送心跳线程
+ */
+public class HeartBeat implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientSender.class);
 
     private Channel channel;
 
-    public ClientSender(){
-
-    }
-
-    public ClientSender(Channel channel){
+    public HeartBeat(Channel channel) {
         this.channel = channel;
     }
 
     @Override
     public void run() {
-        while (true) {
-            if(!this.channel.isActive()){
-                LOGGER.warn("客户端连接通道异常,关闭发送!");
-                break;
+        boolean running = true;
+        while (running) {
+            if (!this.channel.isActive()) {
+                running = false;
             }
-            byte[] data = MsgCreator.createAppData("cgx",Const.getSeqNo());
-            ByteBuf bf = this.channel.alloc().buffer(23);
-            bf.writeBytes(data);
+            ByteBuf bf = this.channel.alloc().buffer(Const.HEAD_LEN);
+            bf.writeBytes(MsgCreator.createHeartBeatData());
             this.channel.writeAndFlush(bf);
             try {
                 Thread.sleep(2000);

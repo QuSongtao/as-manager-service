@@ -1,5 +1,7 @@
 package com.asocket.manager.old;
 
+import java.util.Date;
+
 public class ByteTransfer {
     /**
      * 将int转为低字节在前，高字节在后的byte数组
@@ -338,7 +340,7 @@ public class ByteTransfer {
         return rtb;
     }
     public static void main(String[] s){
-        System.out.println((char) 0xff);
+        System.out.println(new Date().getTime());
     }
 
 }
