@@ -11,19 +11,30 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Netty客户端
+ *
+ * @author qust
+ * @version 1.0 20180926
+ */
 @Component
 public class NettyClient {
 
     @Autowired
     private NettyClientThread nettyClientThread;
 
+    @Value("${netty.remote.addr}")
+    private String host;
+
+    @Value("${netty.remote.port}")
+    private int port;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyClient.class);
 
     public void startClient() {
-        String host = "192.168.0.105";
-        int port = 7878;
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {

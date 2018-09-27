@@ -1,5 +1,10 @@
 netty:
-  port: 7878
+  local:
+    port: 7878
+  remote:
+    addr: 192.168.0.105
+    port: 7878
+
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
@@ -12,4 +17,16 @@ spring:
       minimum-idle: 10
       connection-timeout: 10000
       read-only: false
+
+ibm:
+  mq:
+    queue-manager: TEST
+    conn-name: 192.168.1.65(1414)
+    channel: SYSTEM.DEF.SVRCONN
+    user: MUSR_MQADMIN
+    password: 123456
+    client-id: qustMqJms
+  queue:
+    q1: Q1
+
 

@@ -23,8 +23,8 @@ public class NettyServer {
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
 
-    // 端口号
-    @Value("${netty.port}")
+    // 本地端口号
+    @Value("${netty.local.port}")
     private int port;
 
     // 启动服务器方法
