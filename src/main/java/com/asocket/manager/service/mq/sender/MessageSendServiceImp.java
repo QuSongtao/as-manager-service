@@ -2,7 +2,7 @@
 成都太阳高科技有限责任公司
 http://www.suncd.com
 */
-package com.asocket.manager.service.mq;
+package com.asocket.manager.service.mq.sender;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsOperations;
@@ -25,6 +25,6 @@ public class MessageSendServiceImp implements MessageSendService {
 
     @PostConstruct
     public void testSend() {
-        sendMessage("Q1", "cgx中文123");
+        sendMessage("WIN.LUX.Q", "cgx中文123");
     }
 }

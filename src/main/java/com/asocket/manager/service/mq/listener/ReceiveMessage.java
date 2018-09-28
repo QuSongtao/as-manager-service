@@ -2,7 +2,7 @@
 成都太阳高科技有限责任公司
 http://www.suncd.com
 */
-package com.asocket.manager.service.mq;
+package com.asocket.manager.service.mq.listener;
 
 import com.ibm.jms.JMSBytesMessage;
 import org.slf4j.Logger;
@@ -16,14 +16,25 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
+/**
+ * 消息侦听
+ * 可以根据业务量大小扩展消息侦听器
+ *
+ * @author qust
+ * @version 1.0 20180927
+ */
 @Component
 public class ReceiveMessage extends MessageListenerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReceiveMessage.class);
 
     @Override
-    @JmsListeners(value = {@JmsListener(destination = "${ibm.queue.q1}"),@JmsListener(destination = "Q2")})
+    @JmsListeners(value = {
+            @JmsListener(destination = "${ibm.recv.queue.q1}"), // xxx队列
+            @JmsListener(destination = "Q2")                    // xxx队列
+    })
     public void onMessage(Message message) {
+        // 1.监听并读取消息
         String recvStrMsg = "";
         if (message instanceof JMSBytesMessage) {
             LOGGER.info("字节类型的消息");
@@ -45,6 +56,8 @@ public class ReceiveMessage extends MessageListenerAdapter {
                 LOGGER.error(e.getMessage(), e);
             }
         }
+
+        // 2.记录消息日志
         LOGGER.info("收到消息:{}", recvStrMsg);
     }
 

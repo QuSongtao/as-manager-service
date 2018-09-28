@@ -2,18 +2,18 @@
 成都太阳高科技有限责任公司
 http://www.suncd.com
 */
-package com.asocket.manager.system;
+package com.asocket.manager.system.constants;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Const {
+public class Constant {
 
-    private Const(){
+    private Constant(){
 
     }
-
+    // -------------------------------- SOCKET CONSTANTS ------------------------------------
     // 消息序号(循环取)
     private static short SEQ_NO = 1;
 
@@ -33,4 +33,7 @@ public class Const {
         }
         return ++SEQ_NO;
     }
+
+    // ------------------------------------ MQ CONSTANTS ------------------------------------
+
 }

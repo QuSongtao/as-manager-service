@@ -1,6 +1,6 @@
 package com.asocket.manager.netty.client;
 
-import com.asocket.manager.system.Const;
+import com.asocket.manager.system.constants.Constant;
 import com.asocket.manager.util.MsgCreator;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -26,7 +26,7 @@ public class HeartBeat implements Runnable {
             if (!this.channel.isActive()) {
                 running = false;
             }
-            ByteBuf bf = this.channel.alloc().buffer(Const.HEAD_LEN);
+            ByteBuf bf = this.channel.alloc().buffer(Constant.HEAD_LEN);
             bf.writeBytes(MsgCreator.createHeartBeatData());
             this.channel.writeAndFlush(bf);
             try {

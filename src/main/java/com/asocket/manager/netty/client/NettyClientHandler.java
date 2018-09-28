@@ -1,6 +1,6 @@
 package com.asocket.manager.netty.client;
 
-import com.asocket.manager.system.Const;
+import com.asocket.manager.system.constants.Constant;
 import com.asocket.manager.util.ByteUtils;
 import com.asocket.manager.util.MsgCreator;
 import com.asocket.manager.vo.SzHeader;
@@ -34,21 +34,21 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         msgBuf.readBytes(msgBytes);
         int msgLen = msgBytes.length;
 
-        if (msgLen >= Const.HEAD_LEN) {
+        if (msgLen >= Constant.HEAD_LEN) {
             // 截取0-20位消息头
-            byte[] header = ByteUtils.subBytes(msgBytes, 0, Const.HEAD_LEN);
+            byte[] header = ByteUtils.subBytes(msgBytes, 0, Constant.HEAD_LEN);
             SzHeader szHeader = MsgCreator.createRecvHeader(header);
             processRecv(szHeader);
 
             // 截取剩余数据
-            byte[] restHeader = ByteUtils.subBytes(msgBytes, Const.HEAD_LEN, msgLen - Const.HEAD_LEN);
+            byte[] restHeader = ByteUtils.subBytes(msgBytes, Constant.HEAD_LEN, msgLen - Constant.HEAD_LEN);
             while (restHeader.length > 0) {
-                header = ByteUtils.subBytes(restHeader, 0, Const.HEAD_LEN);
+                header = ByteUtils.subBytes(restHeader, 0, Constant.HEAD_LEN);
                 szHeader = MsgCreator.createRecvHeader(header);
                 processRecv(szHeader);
 
                 // 继续截取剩余数据
-                restHeader = ByteUtils.subBytes(restHeader, Const.HEAD_LEN, msgLen - Const.HEAD_LEN);
+                restHeader = ByteUtils.subBytes(restHeader, Constant.HEAD_LEN, msgLen - Constant.HEAD_LEN);
             }
         }
 

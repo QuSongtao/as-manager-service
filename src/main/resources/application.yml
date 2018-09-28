@@ -17,16 +17,19 @@ spring:
       minimum-idle: 10
       connection-timeout: 10000
       read-only: false
+  application:
+    name: as-manager-service
 
 ibm:
   mq:
-    queue-manager: TEST
-    conn-name: 192.168.1.65(1414)
+    queue-manager: TEST.QM
+    conn-name: 192.168.1.66(1414)
     channel: SYSTEM.DEF.SVRCONN
-    user: MUSR_MQADMIN
-    password: 123456
-    client-id: qustMqJms
-  queue:
-    q1: Q1
+    user: mqm
+    password: mqm
+    client-id: qustMqJms66v9
+  recv:
+    queue:
+      q1: WIN.LUX.Q
 
 

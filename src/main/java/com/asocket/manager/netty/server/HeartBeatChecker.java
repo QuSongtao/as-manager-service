@@ -4,7 +4,7 @@ http://www.suncd.com
 */
 package com.asocket.manager.netty.server;
 
-import com.asocket.manager.system.Const;
+import com.asocket.manager.system.constants.Constant;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +41,9 @@ public class HeartBeatChecker implements Runnable {
                 LOGGER.error("线程SLEEP出现异常!");
             }
 
-            if(new Date().getTime() - Const.LAST_RECV_TIME.get(this.channel.hashCode()).getTime() > Const.TIMEOUT_MS){
+            if(new Date().getTime() - Constant.LAST_RECV_TIME.get(this.channel.hashCode()).getTime() > Constant.TIMEOUT_MS){
                 LOGGER.warn("客户端无心跳,主动断开客户端!");
-                Const.LAST_RECV_TIME.remove(this.channel.hashCode());
+                Constant.LAST_RECV_TIME.remove(this.channel.hashCode());
                 // 超过60秒无响应则断开客户端
                 this.channel.close();
                 running = false;

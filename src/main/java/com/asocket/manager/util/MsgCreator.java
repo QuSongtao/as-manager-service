@@ -1,6 +1,6 @@
 package com.asocket.manager.util;
 
-import com.asocket.manager.system.Const;
+import com.asocket.manager.system.constants.Constant;
 import com.asocket.manager.vo.SzHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class MsgCreator {
         mh.setReserved((short) 0x0000);
         bytes[0] = mh.toByte();
         bytes[1] = busiData.getBytes();
-        return ByteUtils.bbToBytes(bytes, Const.HEAD_LEN + dataLen);
+        return ByteUtils.bbToBytes(bytes, Constant.HEAD_LEN + dataLen);
     }
 
     /**
