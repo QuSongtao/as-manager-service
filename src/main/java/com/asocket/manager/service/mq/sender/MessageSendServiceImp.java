@@ -18,7 +18,7 @@ public class MessageSendServiceImp implements MessageSendService {
 
     @Override
     public void sendMessage(String destinationName, String message) {
-        // 转为字节发送
+        // 所有消息转为字节发送
         byte[] msgBuf = message.getBytes();
         jmsOperations.convertAndSend(destinationName, msgBuf);
     }

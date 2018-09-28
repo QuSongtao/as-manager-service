@@ -42,16 +42,16 @@ public class NettyServer {
 
             // 绑定端口,侦听客户端连接
             ChannelFuture channelFuture = server.bind(port).sync();
-            LOGGER.info("通信服务端启动成功,端口:[" + port + "]等待客户端连接 ");
+            LOGGER.info("【服务端】通信服务端组件启动成功,端口:[" + port + "]等待客户端连接 ");
             // 等待服务器socket关闭
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER.error("通信服务端异常:", e.getMessage());
+            LOGGER.error("【服务端】通信服务端组件异常:", e.getMessage());
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
 
-            LOGGER.warn("通信服务端将在10秒后重启!");
+            LOGGER.warn("【服务端】通信服务端组件将在10秒后重启!");
             try {
                 Thread.sleep(10 * 1000);
                 Thread thread = new Thread(new NettyServerThread());

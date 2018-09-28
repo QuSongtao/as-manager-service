@@ -42,13 +42,13 @@ public class HeartBeatChecker implements Runnable {
             }
 
             if(new Date().getTime() - Constant.LAST_RECV_TIME.get(this.channel.hashCode()).getTime() > Constant.TIMEOUT_MS){
-                LOGGER.warn("客户端无心跳,主动断开客户端!");
                 Constant.LAST_RECV_TIME.remove(this.channel.hashCode());
                 // 超过60秒无响应则断开客户端
                 this.channel.close();
+                LOGGER.warn("【服务端】服务端超过{}秒未收到客户端心跳,已断开客户端,通道编号:{}",Constant.TIMEOUT_MS/1000,this.channel.hashCode());
                 running = false;
             }
         }
-        LOGGER.warn("通道关闭,心跳侦听结束!");
+        LOGGER.warn("【服务端】服务端连接通道:{}异常,已关闭心跳侦听线程!",this.channel.hashCode());
     }
 }

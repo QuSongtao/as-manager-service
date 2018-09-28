@@ -13,6 +13,7 @@ public class MsgCreator {
     private MsgCreator(){
 
     }
+
     /**
      * 基础响应数据
      */
@@ -29,6 +30,7 @@ public class MsgCreator {
         mh.setReserved((short) 0x0000);
         return mh.toByte();
     }
+
     /**
      * 创建心跳消息
      */
@@ -39,9 +41,8 @@ public class MsgCreator {
     /**
      * 创建业务请求数据
      */
-    public static byte[] createAppData(String busiData, short seqNo) {
+    public static byte[] createAppData(String busiData, int pushTime, short seqNo) {
         short dataLen = (short) busiData.getBytes().length;
-        LOGGER.info("数据长度:{}",dataLen );
         byte[][] bytes = new byte[2][];
         SzHeader mh = new SzHeader();
         mh.setMsgType((short) 0x8000);
@@ -50,7 +51,7 @@ public class MsgCreator {
         mh.setMenberIdDestination((short) 11);
         mh.setGroupIdSource((short) 20);
         mh.setMenberIdSource((short) 21);
-        mh.setMsgTime((int) (new Date().getTime() / 1000));
+        mh.setMsgTime(pushTime);
         mh.setSeqNo(seqNo);
         mh.setReserved((short) 0x0000);
         bytes[0] = mh.toByte();

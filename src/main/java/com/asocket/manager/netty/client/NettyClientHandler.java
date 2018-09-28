@@ -19,11 +19,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // 启动业务消息发送
-        Thread sender = new Thread(new ClientSender(ctx.channel()));
+        Thread sender = new Thread(new MessageSender(ctx.channel()));
         sender.start();
 
         // 启动心跳消息发送
-        Thread heartBeat = new Thread(new HeartBeat(ctx.channel()));
+        Thread heartBeat = new Thread(new HeartBeatSender(ctx.channel()));
         heartBeat.start();
     }
 
@@ -57,19 +57,25 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        LOGGER.warn("【客户端】客户端连接通道:{}被移除!",ctx.channel().hashCode());
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
         // 记录错误信息
-        LOGGER.error("客户端出现异常,捕捉结果:", cause);
+        LOGGER.error("【客户端】客户端出现异常,捕捉结果:", cause);
 
         // 关闭连接
         ctx.close();
     }
 
     private void processRecv(SzHeader szHeader){
-        LOGGER.info("客户端收到消息头:{}", szHeader.toString());
-        // 1.获取消息头类型,只取正常响应的
+        LOGGER.info("【客户端】客户端收到消息头:{}", szHeader.toString());
+        // 1.获取消息sendTime和seqNo
 
-        // 2.处理数据更新
+        // 2.处理数据更新 delete from conn_send_main where pushTime = '' and seqNo = ''
+        //               insert into conn_send_main_his
     }
 }

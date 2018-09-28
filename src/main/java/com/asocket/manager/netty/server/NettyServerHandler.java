@@ -64,7 +64,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER.info("客户端:" + clientIp + "已连接!");
+        LOGGER.info("【服务端】客户端:{}已连接到服务端,通道编号:{}",clientIp,ctx.channel().hashCode());
         // 设置最后心跳接收时间
         Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(),new Date());
         // 开启心跳监测线程
@@ -76,13 +76,13 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER.info("客户端:" + clientIp + "已断开连接!");
+        LOGGER.info("【服务端】客户端:{}已从服务端断开,通道编号:{}",clientIp,ctx.channel().hashCode());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // 记录错误信息
-        LOGGER.error("连接异常捕捉:", cause);
+        LOGGER.error("【服务端】连接异常捕捉:", cause);
 
         // 内部出错不关闭与客户端建立的连接
         //ctx.close();

@@ -51,15 +51,15 @@ public class NettyClient {
 
             // 启动客户端连接
             ChannelFuture f = client.connect(host, port).sync();
-            LOGGER.info("客户端启动完成,主机IP:{},主机端口:{}", host, port);
+            LOGGER.info("【客户端】通信客户端组件启动成功,通道编号:{},主机IP:{},主机端口:{}", f.channel().hashCode(),host, port);
 
             // 等待连接被关闭,执行如下
             f.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER.error("客户端初始化出现异常:", e);
+            LOGGER.error("【客户端】通信客户端组件初始化出现异常:", e);
         } finally {
             workerGroup.shutdownGracefully();
-            LOGGER.warn("客户端将在10秒后重启");
+            LOGGER.warn("【客户端】通信客户端组件将在10秒后重启");
             try {
                 Thread.sleep(10 * 1000);
             } catch (InterruptedException e1) {

@@ -27,17 +27,18 @@ import javax.jms.TextMessage;
 public class ReceiveMessage extends MessageListenerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReceiveMessage.class);
+    private static final Logger WARN_LOGGER = LoggerFactory.getLogger("warnAndErrorLogger");
 
     @Override
     @JmsListeners(value = {
-            @JmsListener(destination = "${ibm.recv.queue.q1}"), // xxx队列
-            @JmsListener(destination = "Q2")                    // xxx队列
+            @JmsListener(destination = "${ibm.recv.queue.q1}")//, // xxx队列
+            //@JmsListener(destination = "Q2")                    // xxx队列
     })
     public void onMessage(Message message) {
         // 1.监听并读取消息
         String recvStrMsg = "";
         if (message instanceof JMSBytesMessage) {
-            LOGGER.info("字节类型的消息");
+            WARN_LOGGER.info("字节类型的消息");
             JMSBytesMessage bm = (JMSBytesMessage) message;
             byte[] bys;
             try {
@@ -45,15 +46,15 @@ public class ReceiveMessage extends MessageListenerAdapter {
                 bm.readBytes(bys);
                 recvStrMsg = new String(bys);
             } catch (Exception e) {
-                LOGGER.error(e.getMessage(), e);
+                WARN_LOGGER.error(e.getMessage(), e);
             }
         } else {
-            LOGGER.info("文本类型的消息");
+            WARN_LOGGER.info("文本类型的消息");
             TextMessage bm = (TextMessage) message;
             try {
                 recvStrMsg = bm.getText();
             } catch (JMSException e) {
-                LOGGER.error(e.getMessage(), e);
+                WARN_LOGGER.error(e.getMessage(), e);
             }
         }
 
@@ -63,6 +64,6 @@ public class ReceiveMessage extends MessageListenerAdapter {
 
     @Override
     protected void handleListenerException(Throwable e) {
-        LOGGER.error(e.getMessage(), e);
+        WARN_LOGGER.error(e.getMessage(), e);
     }
 }
