@@ -2,7 +2,7 @@
 <configuration>
     <springProperty scope="context" name="ServerIP" source="spring.cloud.client.ipAddress" defaultValue="0.0.0.0"/>
     <springProperty scope="context" name="ServerPort" source="server.port" defaultValue="0000"/>
-    <springProperty scope="context" name="applicationName" source="spring.application.name" defaultValue="acs"/>
+    <springProperty scope="context" name="applicationName" source="spring.application.name" defaultValue="conn"/>
     <!-- 彩色日志 -->
     <!-- 彩色日志依赖的渲染类 -->
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
@@ -24,10 +24,10 @@
 
     <!-- 系统日志、异常日志 -->
     <appender name="sysLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/mq/sysLog/system-out.log</file>
+        <file>logs/socket/sysLog/system-out.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>logs/mq/sysLog/system-out_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/socket/sysLog/system-out_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -44,11 +44,11 @@
         </filter>
     </appender>
 
-    <!-- mq发送日志 -->
-    <appender name="mqSendLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/mq/sendLog/message-send.log</file>
+    <!-- 发送日志 -->
+    <appender name="sendLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/socket/sendLog/message-send.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/mq/sendLog/message-send_%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>logs/socket/sendLog/message-send_%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
@@ -68,11 +68,11 @@
         </filter>
     </appender>
 
-    <!-- mq接收日志 -->
-    <appender name="mqRecvLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/mq/recvLog/message-recv.log</file>
+    <!-- 接收日志 -->
+    <appender name="recvLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/socket/recvLog/message-recv.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/mq/recvLog/message-recv_%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>logs/socket/recvLog/message-recv_%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
@@ -104,15 +104,15 @@
     </logger>
 
     <!-- 发送消息记录到发送日志中 -->
-    <logger name="com.asocket.manager.service.mq.sender" level="info" additivity="false">
+    <logger name="com.suncd.conn.netty.service.client" level="info" additivity="false">
         <appender-ref ref="StdoutAppender"/>
-        <appender-ref ref="mqSendLogAppender"/>
+        <appender-ref ref="sendLogAppender"/>
     </logger>
 
     <!-- 接收消息记录到接收日志中 -->
-    <logger name="com.asocket.manager.service.mq.listener" level="info" additivity="false">
+    <logger name="com.suncd.conn.netty.service.server" level="info" additivity="false">
         <appender-ref ref="StdoutAppender"/>
-        <appender-ref ref="mqRecvLogAppender"/>
+        <appender-ref ref="recvLogAppender"/>
     </logger>
 
 </configuration>

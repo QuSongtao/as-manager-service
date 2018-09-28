@@ -18,18 +18,7 @@ spring:
       connection-timeout: 10000
       read-only: false
   application:
-    name: as-manager-service
+    name: conn-netty-service
 
-ibm:
-  mq:
-    queue-manager: TEST.QM
-    conn-name: 192.168.1.66(1414)
-    channel: SYSTEM.DEF.SVRCONN
-    user: mqm
-    password: mqm
-    client-id: qustMqJms66v9
-  recv:
-    queue:
-      q1: WIN.LUX.Q
 
 
