@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @MapperScan("com.suncd.conn.netty.dao")
 @SpringBootApplication
-public class AsManagerBoot {
+public class ConnNettyBoot {
 
     public static void main(String[] args) {
-        SpringApplication.run(AsManagerBoot.class, args);
+        SpringApplication.run(ConnNettyBoot.class, args);
 
     }
 }
