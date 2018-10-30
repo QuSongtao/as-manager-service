@@ -1,4 +1,4 @@
-package com.suncd.conn.netty.service.client;
+package com.suncd.conn.netty.service.messageservice.client;
 
 import com.suncd.conn.netty.utils.ByteUtils;
 import com.suncd.conn.netty.utils.MsgCreator;

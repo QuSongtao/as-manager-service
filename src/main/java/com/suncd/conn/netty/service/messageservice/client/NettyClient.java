@@ -1,5 +1,6 @@
-package com.suncd.conn.netty.service.client;
+package com.suncd.conn.netty.service.messageservice.client;
 
+import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -53,12 +54,18 @@ public class NettyClient {
             ChannelFuture f = client.connect(host, port).sync();
             LOGGER.info("【客户端】通信客户端组件启动成功,通道编号:{},主机IP:{},主机端口:{}", f.channel().hashCode(),host, port);
 
+            // 设置客户端状态为1-运行
+            Constant.CLIENT_STATUS = 1;
+
             // 等待连接被关闭,执行如下
             f.channel().closeFuture().sync();
         } catch (Exception e) {
             LOGGER.error("【客户端】通信客户端组件初始化出现异常:", e);
         } finally {
             workerGroup.shutdownGracefully();
+
+            // 设置客户端状态为1-运行
+            Constant.CLIENT_STATUS = 0;
             LOGGER.warn("【客户端】通信客户端组件将在10秒后重启");
             try {
                 Thread.sleep(10 * 1000);

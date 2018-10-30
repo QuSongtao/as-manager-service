@@ -1,8 +1,12 @@
+server:
+  port: 8082
+
 netty:
   local:
+    addr: 192.168.0.125
     port: 7878
   remote:
-    addr: 192.168.1.222
+    addr: 192.168.0.104
     port: 7879
 
 spring:

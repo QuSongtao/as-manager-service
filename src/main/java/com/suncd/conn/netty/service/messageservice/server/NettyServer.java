@@ -1,5 +1,6 @@
-package com.suncd.conn.netty.service.server;
+package com.suncd.conn.netty.service.messageservice.server;
 
+import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -43,6 +44,9 @@ public class NettyServer {
             // 绑定端口,侦听客户端连接
             ChannelFuture channelFuture = server.bind(port).sync();
             LOGGER.info("【服务端】通信服务端组件启动成功,端口:[" + port + "]等待客户端连接 ");
+
+            // 设置服务端状态为1-运行
+            Constant.SERVER_STATUS = 1;
             // 等待服务器socket关闭
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -50,6 +54,9 @@ public class NettyServer {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+
+            // 设置服务端状态为0-停止
+            Constant.SERVER_STATUS = 0;
 
             LOGGER.warn("【服务端】通信服务端组件将在10秒后重启!");
             try {

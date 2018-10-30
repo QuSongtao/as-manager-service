@@ -1,4 +1,4 @@
-package com.suncd.conn.netty.service.server;
+package com.suncd.conn.netty.service.messageservice.server;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

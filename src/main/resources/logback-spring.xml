@@ -24,10 +24,10 @@
 
     <!-- 系统日志、异常日志 -->
     <appender name="sysLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/socket/sysLog/system-out.log</file>
+        <file>logs/socket/sysLog/out.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>logs/socket/sysLog/system-out_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/socket/sysLog/out_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -46,9 +46,9 @@
 
     <!-- 发送日志 -->
     <appender name="sendLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/socket/sendLog/message-send.log</file>
+        <file>logs/socket/sendLog/send.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/socket/sendLog/message-send_%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>logs/socket/sendLog/send_%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
@@ -70,9 +70,9 @@
 
     <!-- 接收日志 -->
     <appender name="recvLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/socket/recvLog/message-recv.log</file>
+        <file>logs/socket/recvLog/recv.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/socket/recvLog/message-recv_%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>logs/socket/recvLog/recv_%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <!--保留时间,单位:天-->
             <maxHistory>30</maxHistory>
@@ -104,13 +104,13 @@
     </logger>
 
     <!-- 发送消息记录到发送日志中 -->
-    <logger name="com.suncd.conn.netty.service.client" level="info" additivity="false">
+    <logger name="com.suncd.conn.netty.service.messageservice.client" level="info" additivity="false">
         <appender-ref ref="StdoutAppender"/>
         <appender-ref ref="sendLogAppender"/>
     </logger>
 
     <!-- 接收消息记录到接收日志中 -->
-    <logger name="com.suncd.conn.netty.service.server" level="info" additivity="false">
+    <logger name="com.suncd.conn.netty.service.messageservice.server" level="info" additivity="false">
         <appender-ref ref="StdoutAppender"/>
         <appender-ref ref="recvLogAppender"/>
     </logger>

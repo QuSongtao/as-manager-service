@@ -34,4 +34,8 @@ public class Constant {
         return ++SEQ_NO;
     }
 
+    // 客户端和服务端状态 0-停止,1-运行
+    public static int CLIENT_STATUS = 0;
+    public static int SERVER_STATUS = 0;
+
 }

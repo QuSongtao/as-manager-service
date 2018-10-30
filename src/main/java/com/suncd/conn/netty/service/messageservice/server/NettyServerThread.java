@@ -2,18 +2,18 @@
 成都太阳高科技有限责任公司
 http://www.suncd.com
 */
-package com.suncd.conn.netty.service.client;
+package com.suncd.conn.netty.service.messageservice.server;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NettyClientThread implements Runnable {
+public class NettyServerThread implements Runnable {
     @Autowired
-    private NettyClient nettyClient;
+    private NettyServer nettyServer;
 
     @Override
     public void run() {
-        nettyClient.startClient();
+        nettyServer.startServer();
     }
 }

@@ -2,7 +2,7 @@
 成都太阳高科技有限责任公司
 http://www.suncd.com
 */
-package com.suncd.conn.netty.service.server;
+package com.suncd.conn.netty.service.messageservice.server;
 
 import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.channel.Channel;

@@ -1,6 +1,6 @@
-package com.suncd.conn.netty.service.server;
+package com.suncd.conn.netty.service.messageservice.server;
 
-import com.suncd.conn.netty.service.client.NettyClientThread;
+import com.suncd.conn.netty.service.messageservice.client.NettyClientThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
