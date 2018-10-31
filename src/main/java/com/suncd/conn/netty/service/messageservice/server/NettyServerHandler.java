@@ -29,7 +29,6 @@ import java.util.UUID;
  * @version 1.0 20180918
  */
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
-
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerHandler.class);
     private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
@@ -49,8 +48,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
         // 获取第一条消息
         int dataLen = ByteUtils.hBytesToShort(ByteUtils.subBytes(msgBytes, 2, 2));  // 数据包长度(不包括消息头)
-//        int msgTime = ByteUtils.hBytesToInt(ByteUtils.subBytes(msgBytes, 12, 4));  // 消息发送时间
-//        int seqNo = ByteUtils.hBytesToShort(ByteUtils.subBytes(msgBytes, 16, 2));  // 消息序号(1-32768)循环
 
         // 处理第一条消息
         recordBytes = ByteUtils.subBytes(msgBytes, 0, dataLen + Constant.HEAD_LEN);
@@ -100,7 +97,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 应答客户端ACK
+     * 1.检测心跳
+     * 2.回执客户端
+     * 3.保存业务消息
      *
      * @param ctx         通道上下文
      * @param recordBytes 单条消息(包括消息头和消息体)
