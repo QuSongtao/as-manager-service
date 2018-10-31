@@ -1,7 +1,13 @@
 package com.suncd.conn.netty.service.messageservice.client;
 
+import com.suncd.conn.netty.dao.ConnSendMainDao;
+import com.suncd.conn.netty.dao.ConnSendMainHisDao;
+import com.suncd.conn.netty.dao.ConnTotalNumDao;
+import com.suncd.conn.netty.entity.ConnSendMain;
+import com.suncd.conn.netty.entity.ConnSendMainHis;
 import com.suncd.conn.netty.utils.ByteUtils;
 import com.suncd.conn.netty.utils.MsgCreator;
+import com.suncd.conn.netty.utils.SpringUtil;
 import com.suncd.conn.netty.vo.SzHeader;
 import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.buffer.ByteBuf;
@@ -9,12 +15,17 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-@Component
+import java.util.Date;
+import java.util.UUID;
+
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyClientHandler.class);
+    private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
+    private ConnSendMainDao connSendMainDao = SpringUtil.getBean(ConnSendMainDao.class);
+    private ConnSendMainHisDao connSendMainHisDao = SpringUtil.getBean(ConnSendMainHisDao.class);
+    private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -27,6 +38,9 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         heartBeat.start();
     }
 
+    /**
+     * 侦听远程服务器的应答消息
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf msgBuf = (ByteBuf) msg;
@@ -58,14 +72,14 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        LOGGER.warn("【客户端】客户端连接通道:{}被移除!",ctx.channel().hashCode());
+        LOGGER_WARN.warn("【客户端】客户端连接通道:{}被移除!",ctx.channel().hashCode());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
         // 记录错误信息
-        LOGGER.error("【客户端】客户端出现异常,捕捉结果:", cause);
+        LOGGER_WARN.error("【客户端】客户端出现异常,捕捉结果:", cause);
 
         // 关闭连接
         ctx.close();
@@ -73,9 +87,30 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     private void processRecv(SzHeader szHeader){
         LOGGER.info("【客户端】客户端收到消息头:{}", szHeader.toString());
-        // 1.获取消息sendTime和seqNo
 
-        // 2.处理数据更新 delete from conn_send_main where pushTime = '' and seqNo = ''
-        //               insert into conn_send_main_his
+        // 1.获取消息sendTime和seqNo
+        int pushTime = szHeader.getMsgTime();
+        short seqNo = szHeader.getSeqNo();
+
+        // 2.删除发送总表数据
+        ConnSendMain connSendMain = connSendMainDao.selectByTimeAndSeq(pushTime,seqNo);
+        connSendMainDao.deleteByPrimaryKey(connSendMain.getId());
+
+        // 3.插入发送历史表
+        ConnSendMainHis connSendMainHis = new ConnSendMainHis();
+        connSendMainHis.setId(UUID.randomUUID().toString());
+        connSendMainHis.setCreateTime(connSendMain.getCreateTime());
+        connSendMainHis.setMsgId(connSendMain.getMsgId());
+        connSendMainHis.setPushLongTime(pushTime);
+        connSendMainHis.setPushSeqNo((int)seqNo);
+        connSendMainHis.setSendFlag("1");
+        connSendMainHis.setSendResult("成功");
+        connSendMainHis.setTelId(connSendMain.getTelId());
+        connSendMainHis.setTelType(connSendMain.getTelType());
+        connSendMainHis.setSendTime(new Date());
+        connSendMainHisDao.insertSelective(connSendMainHis);
+
+        // 4.更新统计表
+        connTotalNumDao.updateTotalNum("SS");
     }
 }

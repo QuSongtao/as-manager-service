@@ -14,4 +14,6 @@ public interface ConnTotalNumDao {
     int updateByPrimaryKeySelective(ConnTotalNum record);
 
     int updateByPrimaryKey(ConnTotalNum record);
+
+    int updateTotalNum(String type);
 }

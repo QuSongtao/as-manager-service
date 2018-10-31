@@ -62,8 +62,14 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.suncd.conn.netty.entity.ConnTotalNum">
     update conn_total_num
-    set totalNum = #{totalNum,jdbcType=BIGINT},
+    set totalNum = #{totalNum,jdbcType=BIGINT}
       type = #{type,jdbcType=VARCHAR}
     where id = #{id,jdbcType=CHAR}
   </update>
+
+  <update id="updateTotalNum" parameterType="java.lang.String">
+      update conn_total_num
+      set totalNum = totalNum + 1
+      where type = #{type,jdbcType=CHAR}
+    </update>
 </mapper>

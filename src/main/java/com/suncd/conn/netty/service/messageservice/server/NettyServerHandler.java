@@ -1,7 +1,13 @@
 package com.suncd.conn.netty.service.messageservice.server;
 
+import com.suncd.conn.netty.dao.ConnRecvMainDao;
+import com.suncd.conn.netty.dao.ConnRecvMsgDao;
+import com.suncd.conn.netty.dao.ConnTotalNumDao;
+import com.suncd.conn.netty.entity.ConnRecvMain;
+import com.suncd.conn.netty.entity.ConnRecvMsg;
 import com.suncd.conn.netty.utils.ByteUtils;
 import com.suncd.conn.netty.utils.MsgCreator;
+import com.suncd.conn.netty.utils.SpringUtil;
 import com.suncd.conn.netty.vo.SzHeader;
 import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.buffer.ByteBuf;
@@ -12,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * 服务端消息处理器
@@ -25,6 +32,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerHandler.class);
+    private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
+    private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
+    private ConnRecvMainDao connRecvMainDao = SpringUtil.getBean(ConnRecvMainDao.class);
+    private ConnRecvMsgDao connRecvMsgDao = SpringUtil.getBean(ConnRecvMsgDao.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -64,9 +75,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER.info("【服务端】客户端:{}已连接到服务端,通道编号:{}",clientIp,ctx.channel().hashCode());
+        LOGGER_WARN.info("【服务端】客户端:{}已连接到服务端,通道编号:{}", clientIp, ctx.channel().hashCode());
         // 设置最后心跳接收时间
-        Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(),new Date());
+        Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
         // 开启心跳监测线程
         Thread heartCheck = new Thread(new HeartBeatChecker(ctx.channel()));
         heartCheck.start();
@@ -76,13 +87,13 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER.info("【服务端】客户端:{}已从服务端断开,通道编号:{}",clientIp,ctx.channel().hashCode());
+        LOGGER_WARN.info("【服务端】客户端:{}已从服务端断开,通道编号:{}", clientIp, ctx.channel().hashCode());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // 记录错误信息
-        LOGGER.error("【服务端】连接异常捕捉:", cause);
+        LOGGER_WARN.error("【服务端】连接异常捕捉:", cause);
 
         // 内部出错不关闭与客户端建立的连接
         //ctx.close();
@@ -98,23 +109,50 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         // 1.判断数据长度是否足够
         if (recordBytes.length >= Constant.HEAD_LEN) {
             SzHeader recvHeader = MsgCreator.createRecvHeader(recordBytes);
-            if (null != recvHeader){
+            if (null != recvHeader) {
                 // 2.判断消息类型
-                if(recvHeader.getMsgType() == (short)0x8080){
+                if (recvHeader.getMsgType() == (short) 0x8080) {
                     // 收到的消息为心跳,记录最新心跳时间
-                    Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(),new Date());
-                }else {
-                    // 3.建立通道消息缓冲区,用于写入响应头
+                    Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
+                } else {
+                    // 3.回执客户端
                     SzHeader szHeader = MsgCreator.createAckHeader(recordBytes);
                     ByteBuf ack = ctx.alloc().buffer(Constant.HEAD_LEN);
                     ack.writeBytes(szHeader.toByte());
                     ctx.writeAndFlush(ack);
 
-                    // 4.保存数据
+                    // 4.插入接收消息表
+                    // 取消息内容字符串
+                    String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
+                    String msgId = UUID.randomUUID().toString();
+                    ConnRecvMsg connRecvMsg = new ConnRecvMsg();
+                    connRecvMsg.setId(msgId);
+                    connRecvMsg.setCreateTime(new Date());
+                    connRecvMsg.setMsgTxt(msg);
+                    connRecvMsgDao.insertSelective(connRecvMsg);
+
+                    // 5.插入接收总表
+                    String telId = msg.substring(0,4);
+                    ConnRecvMain connRecvMain = new ConnRecvMain();
+                    connRecvMain.setId(UUID.randomUUID().toString());
+                    connRecvMain.setDealFlag("0");
+                    connRecvMain.setMsgId(msgId);
+                    connRecvMain.setRecvTime(new Date());
+                    connRecvMain.setTelId(telId);
+                    connRecvMain.setTelType("SK");
+                    connRecvMainDao.insertSelective(connRecvMain);
+
+                    // 6.更新统计表
+                    connTotalNumDao.updateTotalNum("RR");
+
+                    // 7.记录接收日志
+                    LOGGER.info(msg);
                 }
             }
-        }else {
-            LOGGER.warn("收到消息长度的长度不够!");
+        } else {
+            LOGGER_WARN.warn("收到消息长度的长度不够!");
+            // 更新统计表
+            connTotalNumDao.updateTotalNum("RE");
         }
     }
 }
