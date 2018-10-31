@@ -1,7 +1,3 @@
-/*
-成都太阳高科技有限责任公司
-http://www.suncd.com
-*/
 package com.suncd.conn.netty.controller;
 
 import com.suncd.conn.netty.system.constants.Constant;
@@ -26,13 +22,13 @@ public class StatusController {
     @Value("${netty.remote.port}")
     private String remotePort;
 
-    @RequestMapping(value = "/status",method = RequestMethod.GET)
-    public Map getStatus(){
-        Map<String ,String> map = new HashMap<>();
-        map.put("clientStatus",Constant.CLIENT_STATUS == 0 ? "DOWN" : "RUNNING");
-        map.put("clientAddr",remoteAddr + "("+ remotePort +")");
-        map.put("serverStatus",Constant.SERVER_STATUS == 0 ? "DOWN" : "RUNNING");
-        map.put("serverAddr",localAddr + "("+ localPort +")");
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public Map getStatus() {
+        Map<String, String> map = new HashMap<>();
+        map.put("clientStatus", Constant.CLIENT_STATUS == 0 ? "DOWN" : "RUNNING");
+        map.put("clientAddr", remoteAddr + "(" + remotePort + ")");
+        map.put("serverStatus", Constant.SERVER_STATUS == 0 ? "DOWN" : "RUNNING");
+        map.put("serverAddr", localAddr + "(" + localPort + ")");
         return map;
     }
 }
