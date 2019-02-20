@@ -23,6 +23,7 @@ public class NettyServer {
 
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
+    private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
 
     // 本地端口号
     @Value("${netty.local.port}")
@@ -50,7 +51,7 @@ public class NettyServer {
             // 等待服务器socket关闭
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER.error("【服务端】通信服务端组件异常:", e.getMessage());
+            LOGGER_WARN.error("【服务端】通信服务端组件异常:", e.getMessage());
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
@@ -58,14 +59,14 @@ public class NettyServer {
             // 设置服务端状态为0-停止
             Constant.SERVER_STATUS = 0;
 
-            LOGGER.warn("【服务端】通信服务端组件将在10秒后重启!");
+            LOGGER_WARN.warn("【服务端】通信服务端组件将在10秒后重启!");
             try {
                 Thread.sleep(10 * 1000);
                 Thread thread = new Thread(new NettyServerThread());
                 // 启动netty服务
                 thread.start();
             } catch (InterruptedException e) {
-                LOGGER.error("线程SLEEP出现异常!");
+                LOGGER_WARN.error("线程SLEEP出现异常!");
             }
         }
     }

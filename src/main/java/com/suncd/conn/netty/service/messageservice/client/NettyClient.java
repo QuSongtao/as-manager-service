@@ -34,6 +34,7 @@ public class NettyClient {
     private int port;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyClient.class);
+    private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
 
     public void startClient() {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -60,13 +61,13 @@ public class NettyClient {
             // 等待连接被关闭,执行如下
             f.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER.error("【客户端】通信客户端组件初始化出现异常:", e);
+            LOGGER_WARN.error("【客户端】通信客户端组件初始化出现异常:", e);
         } finally {
             workerGroup.shutdownGracefully();
 
             // 设置客户端状态为1-运行
             Constant.CLIENT_STATUS = 0;
-            LOGGER.warn("【客户端】通信客户端组件将在10秒后重启");
+            LOGGER_WARN.warn("【客户端】通信客户端组件将在10秒后重启");
             try {
                 Thread.sleep(10 * 1000);
             } catch (InterruptedException e1) {

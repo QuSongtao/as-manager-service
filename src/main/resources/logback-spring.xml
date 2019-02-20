@@ -92,13 +92,8 @@
         </filter>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="StdoutAppender"/>
-        <appender-ref ref="sysLogAppender"/>
-    </root>
-
     <!-- 异常及警告输出到系统日志中 -->
-    <logger name="warnAndErrorLogger" additivity="false">
+    <logger name="com.suncd.conn" additivity="false">
         <appender-ref ref="StdoutAppender"/>
         <appender-ref ref="sysLogAppender"/>
     </logger>
@@ -114,5 +109,10 @@
         <appender-ref ref="StdoutAppender"/>
         <appender-ref ref="recvLogAppender"/>
     </logger>
+
+    <root level="INFO">
+        <appender-ref ref="StdoutAppender"/>
+        <appender-ref ref="sysLogAppender"/>
+    </root>
 
 </configuration>
