@@ -1,21 +1,21 @@
 server:
-  port: 8082
+  port: 8083
 
 netty:
   local:
-    addr: 192.168.0.125
-    port: 7878
+    addr: ${NETTY_LOCAL_ADDR:192.168.0.125}
+    port: ${NETTY_LOCAL_PORT:7878}
   remote:
-    addr: 192.168.1.5
-    port: 7879
+    addr: ${NETTY_REMOTE_ADDR:192.168.1.4}
+    port: ${NETTY_REMOTE_PORT:7879}
 
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: oracle.jdbc.driver.OracleDriver
-    url: jdbc:oracle:thin:@192.168.1.65:1521:orcl
-    username: CONN
-    password: 123456
+    url: jdbc:oracle:thin:@${ORACLE_URL:192.168.1.65:1521:orcl}
+    username: ${ORACLE_USERNAME:CONN}
+    password: ${ORACLE_PASSWORD:123456}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
