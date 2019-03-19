@@ -44,12 +44,7 @@ public class NettyClient {
             client.group(workerGroup);
             client.channel(NioSocketChannel.class);
             client.option(ChannelOption.SO_KEEPALIVE, true);
-            client.handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new NettyClientHandler());
-                }
-            });
+            client.handler(new NettyClientInitializer());
 
             // 启动客户端连接
             ChannelFuture f = client.connect(host, port).sync();

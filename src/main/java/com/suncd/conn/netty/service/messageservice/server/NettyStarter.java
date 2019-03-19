@@ -37,7 +37,5 @@ public class NettyStarter implements ApplicationRunner {
         Thread client = new Thread(nettyClientThread);
         // 启动netty客户端
         client.start();
-
-
     }
 }
