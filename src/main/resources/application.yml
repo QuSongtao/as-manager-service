@@ -1,12 +1,12 @@
 server:
-  port: 8083
+  port: ${APPLICATION_PORT:18083}
 
 netty:
   local:
     addr: ${NETTY_LOCAL_ADDR:192.168.0.125}
     port: ${NETTY_LOCAL_PORT:7878}
   remote:
-    addr: ${NETTY_REMOTE_ADDR:192.168.1.4}
+    addr: ${NETTY_REMOTE_ADDR:169.254.65.221}
     port: ${NETTY_REMOTE_PORT:7879}
 
 spring:

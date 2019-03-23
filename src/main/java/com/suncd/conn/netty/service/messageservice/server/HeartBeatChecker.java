@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
+/**
+ * 每隔2秒检测一次心跳时间是否在允许范围
+ */
 public class HeartBeatChecker implements Runnable {
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartBeatChecker.class);
@@ -43,7 +46,7 @@ public class HeartBeatChecker implements Runnable {
 
             if(new Date().getTime() - Constant.LAST_RECV_TIME.get(this.channel.hashCode()).getTime() > Constant.TIMEOUT_MS){
                 Constant.LAST_RECV_TIME.remove(this.channel.hashCode());
-                // 超过60秒无响应则断开客户端
+                // 超过n秒无响应则断开客户端
                 this.channel.close();
                 LOGGER.warn("【服务端】服务端超过{}秒未收到客户端心跳,已断开客户端,通道编号:{}",Constant.TIMEOUT_MS/1000,this.channel.hashCode());
                 running = false;

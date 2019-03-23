@@ -111,8 +111,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             if (null != recvHeader) {
                 // 2.判断消息类型
                 if (recvHeader.getMsgType() == (short) 0x8080) {
-                    // 收到的消息为心跳,记录最新心跳时间
+                    // 收到的消息为心跳,记录最后心跳接收时间
                     Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
+                    LOGGER_WARN.info("【服务端】收到酸轧二级心跳报文,丢弃处理!");
                 } else {
                     // 3.回执客户端
                     SzHeader szHeader = MsgCreator.createAckHeader(recordBytes);

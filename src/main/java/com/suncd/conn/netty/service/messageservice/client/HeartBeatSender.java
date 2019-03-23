@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 发送心跳线程
+ * 发送心跳线程,每隔30秒钟发送一次心跳
  */
 public class HeartBeatSender implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageSender.class);
@@ -31,7 +31,7 @@ public class HeartBeatSender implements Runnable {
             bf.writeBytes(MsgCreator.createHeartBeatData());
             this.channel.writeAndFlush(bf);
             try {
-                Thread.sleep(5000);
+                Thread.sleep(30000);
             } catch (InterruptedException e) {
                 LOGGER.error(e.getMessage());
             }
