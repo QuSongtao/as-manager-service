@@ -106,7 +106,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         connSendMainHis.setSendFlag("1");
         connSendMainHis.setSendResult("成功");
         connSendMainHis.setTelId(connSendMain.getTelId());
-        connSendMainHis.setTelType(connSendMain.getTelType());
+        connSendMainHis.setSender(connSendMain.getSender());
+        connSendMainHis.setSenderName(connSendMain.getSenderName());
+        connSendMainHis.setReceiver(connSendMain.getReceiver());
+        connSendMainHis.setReceiverName(connSendMain.getReceiverName());
         connSendMainHis.setSendTime(new Date());
         connSendMainHisDao.insertSelective(connSendMainHis);
 

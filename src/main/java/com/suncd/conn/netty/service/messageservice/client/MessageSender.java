@@ -48,7 +48,7 @@ public class MessageSender implements Runnable {
             }
             try {
                 // 1.获取待发电文
-                List<ConnSendMain> connSendMains = connSendMainDao.selectBySendFlag("0", "SK");
+                List<ConnSendMain> connSendMains = connSendMainDao.selectByReceiver(Constant.SOCKET_SZ);
                 for (ConnSendMain connSendMain : connSendMains) {
                     ConnSendMsg connSendMsg = connSendMsgDao.selectByPrimaryKey(connSendMain.getMsgId());
 
@@ -66,7 +66,10 @@ public class MessageSender implements Runnable {
                         connSendMainHis.setSendFlag("0");
                         connSendMainHis.setSendResult("失败:消息长度不够或内容为空");
                         connSendMainHis.setTelId(connSendMain.getTelId());
-                        connSendMainHis.setTelType(connSendMain.getTelType());
+                        connSendMainHis.setSender(connSendMain.getSender());
+                        connSendMainHis.setSenderName(connSendMain.getSenderName());
+                        connSendMainHis.setReceiver(connSendMain.getReceiver());
+                        connSendMainHis.setReceiverName(connSendMain.getReceiverName());
                         connSendMainHis.setSendTime(new Date());
                         connSendMainHisDao.insertSelective(connSendMainHis);
 
@@ -74,7 +77,7 @@ public class MessageSender implements Runnable {
                         connTotalNumDao.updateTotalNum("SE");
 
                     } else {
-                        int pushTime = (int) (new Date().getTime() / 1000); // 时间标记 - 只能用15年
+                        int pushTime = (int) (new Date().getTime() / 1000); // 时间标记
                         short seqNo = Constant.getSeqNo(); // 循环发送序号
                         // 2.更新发送总表数据
                         connSendMain.setPushLongTime(pushTime);

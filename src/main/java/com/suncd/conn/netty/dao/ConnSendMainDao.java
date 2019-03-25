@@ -10,15 +10,7 @@ public interface ConnSendMainDao {
 
     ConnSendMain selectByTimeAndSeq(@Param("pushTime") int pushTime, @Param("seqNo") int seqNo);
 
-    int insert(ConnSendMain record);
-
-    int insertSelective(ConnSendMain record);
-
-    ConnSendMain selectByPrimaryKey(String id);
-
-    List<ConnSendMain> selectBySendFlag(@Param("sendFlag") String sendFlag, @Param("telType") String telType);
+    List<ConnSendMain> selectByReceiver(@Param("receiver") String receiver);
 
     int updateByPrimaryKeySelective(ConnSendMain record);
-
-    int updateByPrimaryKey(ConnSendMain record);
 }

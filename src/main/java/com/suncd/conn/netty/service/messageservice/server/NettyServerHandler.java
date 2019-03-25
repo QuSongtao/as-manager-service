@@ -1,11 +1,14 @@
 package com.suncd.conn.netty.service.messageservice.server;
 
+import com.suncd.conn.netty.dao.ConnConfSyscodeDao;
 import com.suncd.conn.netty.dao.ConnRecvMainDao;
 import com.suncd.conn.netty.dao.ConnRecvMsgDao;
 import com.suncd.conn.netty.dao.ConnTotalNumDao;
+import com.suncd.conn.netty.entity.ConnConfSyscode;
 import com.suncd.conn.netty.entity.ConnRecvMain;
 import com.suncd.conn.netty.entity.ConnRecvMsg;
 import com.suncd.conn.netty.utils.ByteUtils;
+import com.suncd.conn.netty.utils.CommonUtil;
 import com.suncd.conn.netty.utils.MsgCreator;
 import com.suncd.conn.netty.utils.SpringUtil;
 import com.suncd.conn.netty.vo.SzHeader;
@@ -35,6 +38,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
     private ConnRecvMainDao connRecvMainDao = SpringUtil.getBean(ConnRecvMainDao.class);
     private ConnRecvMsgDao connRecvMsgDao = SpringUtil.getBean(ConnRecvMsgDao.class);
+    private ConnConfSyscodeDao connConfSyscodeDao = SpringUtil.getBean(ConnConfSyscodeDao.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -132,14 +136,16 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
                     connRecvMsgDao.insertSelective(connRecvMsg);
 
                     // 5.插入接收总表
-                    String telId = msg.substring(0,4);
+                    String telId = msg.substring(0, 4);
                     ConnRecvMain connRecvMain = new ConnRecvMain();
                     connRecvMain.setId(UUID.randomUUID().toString());
-                    connRecvMain.setDealFlag("0");
                     connRecvMain.setMsgId(msgId);
                     connRecvMain.setRecvTime(new Date());
                     connRecvMain.setTelId(telId);
-                    connRecvMain.setTelType("SK");
+                    connRecvMain.setSender(Constant.SOCKET_SZ);
+                    connRecvMain.setSenderName(getSysNameByCode(Constant.SOCKET_SZ));
+                    connRecvMain.setReceiver(Constant.MES_CR);
+                    connRecvMain.setReceiverName(getSysNameByCode(Constant.MES_CR));
                     connRecvMainDao.insertSelective(connRecvMain);
 
                     // 6.更新统计表
@@ -155,4 +161,15 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             connTotalNumDao.updateTotalNum("RE");
         }
     }
+
+    private String getSysNameByCode(String sysCode) {
+        ConnConfSyscode connConfSyscode = connConfSyscodeDao.selectBySysCode(sysCode);
+        if (null == connConfSyscode) {
+            CommonUtil.SYSLOGGER.warn("【警告】通信系统编码:{} 没有在CONN_CONF_SYSCODE表中定义！", sysCode);
+            return null;
+        } else {
+            return connConfSyscode.getSysName();
+        }
+    }
+
 }

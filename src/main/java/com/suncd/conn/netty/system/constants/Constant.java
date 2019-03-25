@@ -38,4 +38,8 @@ public class Constant {
     public static int CLIENT_STATUS = 0;
     public static int SERVER_STATUS = 0;
 
+    // 各SOCKET通信系统编码
+    public static String SOCKET_SZ = "SZ";    // 酸轧
+    public static String MES_CR = "CR";       // 冷轧1#MES
+
 }
