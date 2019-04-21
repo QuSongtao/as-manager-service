@@ -137,34 +137,38 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
                     ack.writeBytes(szHeader.toByte());
                     ctx.writeAndFlush(ack);
 
-                    // 4.插入接收消息表
-                    // 取消息内容字符串
-                    String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
-                    String msgId = UUID.randomUUID().toString();
-                    ConnRecvMsg connRecvMsg = new ConnRecvMsg();
-                    connRecvMsg.setId(msgId);
-                    connRecvMsg.setCreateTime(new Date());
-                    connRecvMsg.setMsgTxt(msg);
-                    connRecvMsgDao.insertSelective(connRecvMsg);
+                    try {
+                        // 4.插入接收消息表
+                        // 取消息内容字符串
+                        String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
+                        String msgId = UUID.randomUUID().toString();
+                        ConnRecvMsg connRecvMsg = new ConnRecvMsg();
+                        connRecvMsg.setId(msgId);
+                        connRecvMsg.setCreateTime(new Date());
+                        connRecvMsg.setMsgTxt(msg);
+                        connRecvMsgDao.insertSelective(connRecvMsg);
 
-                    // 5.插入接收总表
-                    String telId = msg.substring(0, 4);
-                    ConnRecvMain connRecvMain = new ConnRecvMain();
-                    connRecvMain.setId(UUID.randomUUID().toString());
-                    connRecvMain.setMsgId(msgId);
-                    connRecvMain.setRecvTime(new Date());
-                    connRecvMain.setTelId(telId);
-                    connRecvMain.setSender(Constant.SOCKET_SZ);
-                    connRecvMain.setSenderName(getSysNameByCode(Constant.SOCKET_SZ));
-                    connRecvMain.setReceiver(Constant.MES_CR);
-                    connRecvMain.setReceiverName(getSysNameByCode(Constant.MES_CR));
-                    connRecvMainDao.insertSelective(connRecvMain);
+                        // 5.插入接收总表
+                        String telId = msg.substring(0, 4);
+                        ConnRecvMain connRecvMain = new ConnRecvMain();
+                        connRecvMain.setId(UUID.randomUUID().toString());
+                        connRecvMain.setMsgId(msgId);
+                        connRecvMain.setRecvTime(new Date());
+                        connRecvMain.setTelId(telId);
+                        connRecvMain.setSender(Constant.SOCKET_SZ);
+                        connRecvMain.setSenderName(getSysNameByCode(Constant.SOCKET_SZ));
+                        connRecvMain.setReceiver(Constant.MES_CR);
+                        connRecvMain.setReceiverName(getSysNameByCode(Constant.MES_CR));
+                        connRecvMainDao.insertSelective(connRecvMain);
 
-                    // 6.更新统计表
-                    connTotalNumDao.updateTotalNum("RR");
+                        // 6.更新统计表
+                        connTotalNumDao.updateTotalNum("RR");
 
-                    // 7.记录接收日志
-                    LOGGER.info(msg);
+                        // 7.记录接收日志
+                        LOGGER.info(msg);
+                    } catch (Exception e) {
+                        CommonUtil.SYSLOGGER.error(e.getMessage(), e);
+                    }
                 }
             }
         } else {

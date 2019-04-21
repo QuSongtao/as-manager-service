@@ -86,9 +86,6 @@ public class MessageSender implements Runnable {
 
                         // 3.发送消息
                         sendMsg(connSendMsg.getMsgTxt(), pushTime, seqNo);
-
-                        // 4.记录发送日志
-                        LOGGER.info(connSendMsg.getMsgTxt());
                     }
                 }
             } catch (Exception e) {

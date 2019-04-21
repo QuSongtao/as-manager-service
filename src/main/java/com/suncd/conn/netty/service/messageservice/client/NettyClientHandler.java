@@ -2,9 +2,11 @@ package com.suncd.conn.netty.service.messageservice.client;
 
 import com.suncd.conn.netty.dao.ConnSendMainDao;
 import com.suncd.conn.netty.dao.ConnSendMainHisDao;
+import com.suncd.conn.netty.dao.ConnSendMsgDao;
 import com.suncd.conn.netty.dao.ConnTotalNumDao;
 import com.suncd.conn.netty.entity.ConnSendMain;
 import com.suncd.conn.netty.entity.ConnSendMainHis;
+import com.suncd.conn.netty.entity.ConnSendMsg;
 import com.suncd.conn.netty.utils.ByteUtils;
 import com.suncd.conn.netty.utils.CommonUtil;
 import com.suncd.conn.netty.utils.MsgCreator;
@@ -25,6 +27,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyClientHandler.class);
     private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
     private ConnSendMainDao connSendMainDao = SpringUtil.getBean(ConnSendMainDao.class);
+    private ConnSendMsgDao connSendMsgDao = SpringUtil.getBean(ConnSendMsgDao.class);
     private ConnSendMainHisDao connSendMainHisDao = SpringUtil.getBean(ConnSendMainHisDao.class);
     private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
 
@@ -119,6 +122,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
             // 4.更新统计表
             connTotalNumDao.updateTotalNum("SS");
+
+            // 5.记录发送日志
+            ConnSendMsg connSendMsg = connSendMsgDao.selectByPrimaryKey(connSendMain.getMsgId());
+            LOGGER.info(connSendMsg.getMsgTxt());
+
         } catch (Exception e) {
             CommonUtil.SYSLOGGER.error(e.getMessage(), e);
         }
