@@ -43,9 +43,6 @@
       <if test="msgId != null">
         msgId = #{msgId,jdbcType=CHAR},
       </if>
-      <if test="sendFlag != null">
-        sendFlag = #{sendFlag,jdbcType=CHAR},
-      </if>
       <if test="createTime != null">
         createTime = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -54,9 +51,6 @@
       </if>
       <if test="pushSeqNo != null">
         pushSeqNo = #{pushSeqNo,jdbcType=INTEGER},
-      </if>
-      <if test="sendTime != null">
-        sendTime = #{sendTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where id = #{id,jdbcType=CHAR}

@@ -6,6 +6,7 @@ import com.suncd.conn.netty.dao.ConnTotalNumDao;
 import com.suncd.conn.netty.entity.ConnSendMain;
 import com.suncd.conn.netty.entity.ConnSendMainHis;
 import com.suncd.conn.netty.utils.ByteUtils;
+import com.suncd.conn.netty.utils.CommonUtil;
 import com.suncd.conn.netty.utils.MsgCreator;
 import com.suncd.conn.netty.utils.SpringUtil;
 import com.suncd.conn.netty.vo.SzHeader;
@@ -43,6 +44,9 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        // 更新心跳时间
+        Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
+
         ByteBuf msgBuf = (ByteBuf) msg;
         byte[] msgBytes = new byte[msgBuf.readableBytes()];
         msgBuf.readBytes(msgBytes);
@@ -72,7 +76,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        LOGGER_WARN.warn("【客户端】客户端连接通道:{}被移除!",ctx.channel().hashCode());
+        LOGGER_WARN.warn("【客户端】连接被断开,通道编号:{}", ctx.channel().hashCode());
     }
 
     @Override
@@ -85,35 +89,38 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
 
-    private void processRecv(SzHeader szHeader){
-        LOGGER.info("【客户端】客户端收到消息头:{}", szHeader.toString());
+    private void processRecv(SzHeader szHeader) {
+        LOGGER.info("【客户端】收到回执消息头:{}", szHeader.toString());
 
         // 1.获取消息sendTime和seqNo
         int pushTime = szHeader.getMsgTime();
         short seqNo = szHeader.getSeqNo();
+        try {
+            // 2.删除发送总表数据
+            ConnSendMain connSendMain = connSendMainDao.selectByTimeAndSeq(pushTime, seqNo);
+            connSendMainDao.deleteByPrimaryKey(connSendMain.getId());
 
-        // 2.删除发送总表数据
-        ConnSendMain connSendMain = connSendMainDao.selectByTimeAndSeq(pushTime,seqNo);
-        connSendMainDao.deleteByPrimaryKey(connSendMain.getId());
+            // 3.插入发送历史表
+            ConnSendMainHis connSendMainHis = new ConnSendMainHis();
+            connSendMainHis.setId(UUID.randomUUID().toString());
+            connSendMainHis.setCreateTime(connSendMain.getCreateTime());
+            connSendMainHis.setMsgId(connSendMain.getMsgId());
+            connSendMainHis.setPushLongTime(pushTime);
+            connSendMainHis.setPushSeqNo((int) seqNo);
+            connSendMainHis.setSendFlag("1");
+            connSendMainHis.setSendResult("发送成功!");
+            connSendMainHis.setTelId(connSendMain.getTelId());
+            connSendMainHis.setSender(connSendMain.getSender());
+            connSendMainHis.setSenderName(connSendMain.getSenderName());
+            connSendMainHis.setReceiver(connSendMain.getReceiver());
+            connSendMainHis.setReceiverName(connSendMain.getReceiverName());
+            connSendMainHis.setSendTime(new Date());
+            connSendMainHisDao.insertSelective(connSendMainHis);
 
-        // 3.插入发送历史表
-        ConnSendMainHis connSendMainHis = new ConnSendMainHis();
-        connSendMainHis.setId(UUID.randomUUID().toString());
-        connSendMainHis.setCreateTime(connSendMain.getCreateTime());
-        connSendMainHis.setMsgId(connSendMain.getMsgId());
-        connSendMainHis.setPushLongTime(pushTime);
-        connSendMainHis.setPushSeqNo((int)seqNo);
-        connSendMainHis.setSendFlag("1");
-        connSendMainHis.setSendResult("成功");
-        connSendMainHis.setTelId(connSendMain.getTelId());
-        connSendMainHis.setSender(connSendMain.getSender());
-        connSendMainHis.setSenderName(connSendMain.getSenderName());
-        connSendMainHis.setReceiver(connSendMain.getReceiver());
-        connSendMainHis.setReceiverName(connSendMain.getReceiverName());
-        connSendMainHis.setSendTime(new Date());
-        connSendMainHisDao.insertSelective(connSendMainHis);
-
-        // 4.更新统计表
-        connTotalNumDao.updateTotalNum("SS");
+            // 4.更新统计表
+            connTotalNumDao.updateTotalNum("SS");
+        } catch (Exception e) {
+            CommonUtil.SYSLOGGER.error(e.getMessage(), e);
+        }
     }
 }

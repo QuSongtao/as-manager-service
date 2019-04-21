@@ -7,7 +7,7 @@ netty:
     port: ${NETTY_LOCAL_PORT:7878}
   remote:
     addr: ${NETTY_REMOTE_ADDR:169.254.65.221}
-    port: ${NETTY_REMOTE_PORT:7879}
+    port: ${NETTY_REMOTE_PORT:7880}
 
 spring:
   datasource:

@@ -42,6 +42,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        // 更新心跳时间
+        Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
+
         ByteBuf buf = (ByteBuf) msg;
 
         // 读取所有字节到字节数组
@@ -53,6 +56,14 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         // 获取第一条消息
         int dataLen = ByteUtils.hBytesToShort(ByteUtils.subBytes(msgBytes, 2, 2));  // 数据包长度(不包括消息头)
 
+        // 判断消息长度是否合法
+        if (dataLen > msgLength) {
+            LOGGER_WARN.info("非法消息: 报文头中业务数据长度{}超过了消息总长度{},放弃处理!", dataLen, msgLength);
+            String errorData = new String(ByteUtils.subBytes(msgBytes, Constant.HEAD_LEN, msgBytes.length - Constant.HEAD_LEN));
+            LOGGER_WARN.info("非法消息内容: {}", errorData);
+            return;
+        }
+
         // 处理第一条消息
         recordBytes = ByteUtils.subBytes(msgBytes, 0, dataLen + Constant.HEAD_LEN);
         ackAndSave(ctx, recordBytes);
@@ -61,6 +72,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         byte[] restBytes = ByteUtils.subBytes(msgBytes, dataLen + Constant.HEAD_LEN, (msgLength - dataLen - Constant.HEAD_LEN));
         while (restBytes.length > 0) {
             dataLen = ByteUtils.hBytesToShort(ByteUtils.subBytes(restBytes, 2, 2));
+
             recordBytes = ByteUtils.subBytes(restBytes, 0, dataLen + Constant.HEAD_LEN);
             ackAndSave(ctx, recordBytes);
 
@@ -76,7 +88,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER_WARN.info("【服务端】客户端:{}已连接到服务端,通道编号:{}", clientIp, ctx.channel().hashCode());
+        LOGGER_WARN.info("【服务端】{}已连接到服务端,通道编号:{}", clientIp, ctx.channel().hashCode());
         // 设置最后心跳接收时间
         Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
         // 开启心跳监测线程
@@ -88,7 +100,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
         String clientIp = client.getAddress().getHostAddress();
-        LOGGER_WARN.info("【服务端】客户端:{}已从服务端断开,通道编号:{}", clientIp, ctx.channel().hashCode());
+        LOGGER_WARN.info("【服务端】{}已从服务端断开,通道编号:{}", clientIp, ctx.channel().hashCode());
     }
 
     @Override

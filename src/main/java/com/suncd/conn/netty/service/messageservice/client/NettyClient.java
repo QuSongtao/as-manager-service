@@ -48,7 +48,7 @@ public class NettyClient {
 
             // 启动客户端连接
             ChannelFuture f = client.connect(host, port).sync();
-            LOGGER.info("【客户端】通信客户端组件启动成功,通道编号:{},主机IP:{},主机端口:{}", f.channel().hashCode(),host, port);
+            LOGGER.info("【客户端】连接远程主机{}:{}成功,通道编号:{}", host, port, f.channel().hashCode());
 
             // 设置客户端状态为1-运行
             Constant.CLIENT_STATUS = 1;
@@ -56,13 +56,13 @@ public class NettyClient {
             // 等待连接被关闭,执行如下
             f.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER_WARN.error("【客户端】通信客户端组件初始化出现异常:", e);
+            LOGGER_WARN.error("【客户端】通信客户端组件异常:", e);
         } finally {
             workerGroup.shutdownGracefully();
 
             // 设置客户端状态为1-运行
             Constant.CLIENT_STATUS = 0;
-            LOGGER_WARN.warn("【客户端】通信客户端组件将在10秒后重启");
+            // LOGGER_WARN.warn("【客户端】通信客户端组件将在10秒后重启");
             try {
                 Thread.sleep(10 * 1000);
             } catch (InterruptedException e1) {

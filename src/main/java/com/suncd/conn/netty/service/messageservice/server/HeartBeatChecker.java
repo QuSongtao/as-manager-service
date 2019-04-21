@@ -48,10 +48,11 @@ public class HeartBeatChecker implements Runnable {
                 Constant.LAST_RECV_TIME.remove(this.channel.hashCode());
                 // 超过n秒无响应则断开客户端
                 this.channel.close();
-                LOGGER.warn("【服务端】服务端超过{}秒未收到客户端心跳,已断开客户端,通道编号:{}",Constant.TIMEOUT_MS/1000,this.channel.hashCode());
+                LOGGER.warn("【服务端】服务端超过{}秒未收到客户端,已断开客户端,通道编号:{}",Constant.TIMEOUT_MS/1000,this.channel.hashCode());
                 running = false;
             }
         }
+        Constant.LAST_RECV_TIME.remove(this.channel.hashCode());
         LOGGER.warn("【服务端】服务端连接通道:{}异常,已关闭心跳侦听线程!",this.channel.hashCode());
     }
 }

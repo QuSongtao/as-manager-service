@@ -21,10 +21,10 @@ public class MsgCreator {
         SzHeader mh = new SzHeader();
         mh.setMsgType(msgType);
         mh.setDataLen((short) 0x0000);
-        mh.setGroupIdDestination((short) 10);
-        mh.setMenberIdDestination((short) 11);
-        mh.setGroupIdSource((short) 20);
-        mh.setMenberIdSource((short) 21);
+        mh.setGroupIdDestination((short) 2);   // 目标组
+        mh.setMenberIdDestination((short) 1);  // 目标成员
+        mh.setGroupIdSource((short) 3);    // 发送组
+        mh.setMenberIdSource((short) 1);   // 发送成员
         mh.setMsgTime((int) (new Date().getTime() / 1000));
         mh.setSeqNo((short) 1);
         mh.setReserved((short) 0x0000);
@@ -47,10 +47,10 @@ public class MsgCreator {
         SzHeader mh = new SzHeader();
         mh.setMsgType((short) 0x8000);
         mh.setDataLen(dataLen);
-        mh.setGroupIdDestination((short) 10);
-        mh.setMenberIdDestination((short) 11);
-        mh.setGroupIdSource((short) 20);
-        mh.setMenberIdSource((short) 21);
+        mh.setGroupIdDestination((short) 2);
+        mh.setMenberIdDestination((short) 1);
+        mh.setGroupIdSource((short) 3);
+        mh.setMenberIdSource((short) 1);
         mh.setMsgTime(pushTime);
         mh.setSeqNo(seqNo);
         mh.setReserved((short) 0x0000);
