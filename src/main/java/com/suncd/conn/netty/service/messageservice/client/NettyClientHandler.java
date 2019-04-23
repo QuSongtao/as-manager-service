@@ -79,7 +79,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        LOGGER_WARN.warn("【客户端】连接被断开,通道编号:{}", ctx.channel().hashCode());
+        LOGGER_WARN.warn("【客户端】连接被远程服务器断开,通道编号:{}", ctx.channel().hashCode());
     }
 
     @Override

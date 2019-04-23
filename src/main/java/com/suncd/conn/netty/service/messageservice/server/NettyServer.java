@@ -2,6 +2,7 @@ package com.suncd.conn.netty.service.messageservice.server;
 
 import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -38,6 +39,8 @@ public class NettyServer {
             server.group(bossGroup, workerGroup);
             server.channel(NioServerSocketChannel.class);
             server.option(ChannelOption.SO_BACKLOG, 1024);
+            // 修改消息缓冲区大小,初始为4096
+            server.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(64, 8192, 65536));
             server.childOption(ChannelOption.TCP_NODELAY, true);
             server.childOption(ChannelOption.SO_KEEPALIVE, true);
             server.childHandler(new NettyServerInitializer());
