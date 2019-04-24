@@ -40,7 +40,7 @@ public class NettyServer {
             server.channel(NioServerSocketChannel.class);
             server.option(ChannelOption.SO_BACKLOG, 1024);
             // 修改消息缓冲区大小,初始为4096
-            server.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(64, 8192, 65536));
+//            server.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(8192, 8192, 65536));
             server.childOption(ChannelOption.TCP_NODELAY, true);
             server.childOption(ChannelOption.SO_KEEPALIVE, true);
             server.childHandler(new NettyServerInitializer());
