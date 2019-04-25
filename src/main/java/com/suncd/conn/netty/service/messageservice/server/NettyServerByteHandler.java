@@ -7,37 +7,34 @@ import com.suncd.conn.netty.dao.ConnTotalNumDao;
 import com.suncd.conn.netty.entity.ConnConfSyscode;
 import com.suncd.conn.netty.entity.ConnRecvMain;
 import com.suncd.conn.netty.entity.ConnRecvMsg;
+import com.suncd.conn.netty.system.constants.Constant;
 import com.suncd.conn.netty.utils.ByteUtils;
 import com.suncd.conn.netty.utils.CommonUtil;
 import com.suncd.conn.netty.utils.MsgCreator;
 import com.suncd.conn.netty.utils.SpringUtil;
 import com.suncd.conn.netty.vo.SzHeader;
-import com.suncd.conn.netty.system.constants.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.net.InetSocketAddress;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * 服务端消息处理器
+ * 服务端消息解码器
  * 1.接收客户端发送的消息
  * 2.应答客户端
  *
  * @author qust
- * @version 1.0 20180918
+ * @version 1.0 20190425
  */
-public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+public class NettyServerByteHandler extends ByteToMessageDecoder {
     // 日志
-    private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerByteHandler.class);
     private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
     private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
     private ConnRecvMainDao connRecvMainDao = SpringUtil.getBean(ConnRecvMainDao.class);
@@ -45,59 +42,127 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private ConnConfSyscodeDao connConfSyscodeDao = SpringUtil.getBean(ConnConfSyscodeDao.class);
     private Environment environment = SpringUtil.getBean(Environment.class);
 
+    // 完整消息包括报文头和报文体
+    private byte[] msgBuf;
+    // 报文体被截断时的偏移量
+    private int offset = 0;
+    // 消息报文头
+    private byte[] headerBuf;
+    // 报文头被截断时的偏移量
+    private int headerOffset = 0;
+
+    /**
+     * 消息解码器
+     *
+     * @param ctx 通道上下文
+     * @param in  消息缓冲数据
+     * @param out 输出
+     * @throws Exception
+     */
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         // 更新心跳时间
         Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
-
-        ByteBuf buf = (ByteBuf) msg;
-
         // 读取所有字节到字节数组
-        int msgLength = buf.readableBytes();
-        LOGGER_WARN.info("可读字节数: {}", msgLength);
-        byte[] msgBytes = new byte[msgLength];
-        buf.readBytes(msgBytes);
-        byte[] recordBytes;
-
-        // 获取第一条消息
-        int dataLen = ByteUtils.hBytesToShort(ByteUtils.subBytes(msgBytes, 2, 2));  // 数据包长度(不包括消息头)
-
-        // 判断消息长度是否合法
-        if (dataLen > msgLength) {
-            LOGGER_WARN.info("非法消息: 报文头中业务数据长度{}超过了消息总长度{},放弃处理!", dataLen, msgLength);
-            String errorData = new String(ByteUtils.subBytes(msgBytes, Constant.HEAD_LEN, msgBytes.length - Constant.HEAD_LEN));
-            LOGGER_WARN.info("非法消息内容: {}", errorData);
-            return;
+        int availableLength = in.readableBytes();
+        LOGGER_WARN.info("字节数据长度: {}", availableLength);
+        if (headerOffset > 0 && headerOffset < 20) {
+            byte[] header = new byte[headerOffset];
+            in.readBytes(header);
+            // 拼接头部
+            headerBuf = ByteUtils.addBytes(headerBuf, header);
         }
 
-        // 处理第一条消息
-        recordBytes = ByteUtils.subBytes(msgBytes, 0, dataLen + Constant.HEAD_LEN);
-        ackAndSave(ctx, recordBytes);
+        // offset为0表示刚处理完上次的业务数据,或者首次接收数据
+        if (offset == 0) {
+            // 读取消息头
+            if (null == headerBuf) {
+                // header在消息末尾被截断的情况
+                if (availableLength < Constant.HEAD_LEN) {
+                    // 把所有的字节读到headerBuf中
+                    headerBuf = new byte[availableLength];
+                    in.readBytes(headerBuf);
+                    // 记录header的剩余字节数,供下次读取
+                    headerOffset = Constant.HEAD_LEN - availableLength;
+                    if (checkHeader(in, availableLength)) {
+                        return;
+                    }
+                    return;
+                } else {
+                    headerBuf = new byte[Constant.HEAD_LEN];
+                    in.readBytes(headerBuf);
+                    headerOffset = Constant.HEAD_LEN;
+                    if (checkHeader(in, availableLength)) {
+                        return;
+                    }
+                }
+            }
+            SzHeader szHeader = MsgCreator.createRecvHeader(headerBuf);
 
-        // 截取剩余字节(此处理方式防止数据粘包)
-        byte[] restBytes = ByteUtils.subBytes(msgBytes, dataLen + Constant.HEAD_LEN, (msgLength - dataLen - Constant.HEAD_LEN));
-        while (restBytes.length > 0) {
-            dataLen = ByteUtils.hBytesToShort(ByteUtils.subBytes(restBytes, 2, 2));
-
-            recordBytes = ByteUtils.subBytes(restBytes, 0, dataLen + Constant.HEAD_LEN);
-            ackAndSave(ctx, recordBytes);
-
-            // 继续截取
-            restBytes = ByteUtils.subBytes(restBytes, dataLen + Constant.HEAD_LEN, (restBytes.length - dataLen - Constant.HEAD_LEN));
+            // 获取业务数据body长度
+            int dataLength = szHeader.getDataLen();
+            // 计算本次是否读取完毕
+            offset = dataLength + headerOffset - availableLength;
+            if (offset == 0 || offset < 0) {
+                // 本次已读取完毕
+                msgBuf = new byte[dataLength];
+                in.readBytes(msgBuf);
+                msgBuf = ByteUtils.addBytes(headerBuf, msgBuf);
+                in.discardReadBytes();
+                ackAndSave(ctx, msgBuf);
+            } else {
+                // 本次未读取完整,装入本次读取的所有字节
+                msgBuf = new byte[availableLength - Constant.HEAD_LEN];
+                in.readBytes(msgBuf);
+                msgBuf = ByteUtils.addBytes(headerBuf, msgBuf);
+            }
+        } else if (offset > 0) {
+            // 未读取完整,待下次读取
+            if (availableLength < offset) {
+                // 还未读够,则全量读
+                byte[] restData = new byte[availableLength];
+                in.readBytes(restData);
+                msgBuf = ByteUtils.addBytes(msgBuf, restData);
+                offset = offset - availableLength;
+            } else {
+                // 已读够,则只读取offset偏移量的长度
+                byte[] restData = new byte[offset];
+                in.readBytes(restData);
+                msgBuf = ByteUtils.addBytes(msgBuf, restData);
+                // 交业务处理
+                in.discardReadBytes();
+                ackAndSave(ctx, msgBuf);
+            }
         }
+    }
 
-        // 释放消息
-        buf.release();
+    private boolean checkHeader(ByteBuf in, int availableLength) {
+        if (-128 != (int) headerBuf[0]) {
+            // 头部截取有问题,进行偏移
+            // 重置read索引
+            in.resetReaderIndex();
+            // 查找是否有符合条件的字节,header字节数据是以-128打头
+            int skip = in.bytesBefore((byte) -128);
+            if (skip < 0) {
+                in.skipBytes(availableLength);
+            } else {
+                in.skipBytes(skip);
+            }
+            headerBuf = null;
+            headerOffset = 0;
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
-        String clientIp = client.getAddress().getHostAddress();
-        LOGGER_WARN.info("【服务端】{}已连接到服务端,通道编号:{}", clientIp, ctx.channel().hashCode());
+    public void channelActive(ChannelHandlerContext ctx)  {
+//        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
+//        String clientIp = client.getAddress().getHostAddress();
+        LOGGER_WARN.info("【服务端】{}已连接到服务端,通道编号:{}", "二级系统", ctx.channel().hashCode());
         // 设置最后心跳接收时间
         Constant.LAST_RECV_TIME.put(ctx.channel().hashCode(), new Date());
-        if(!environment.getProperty("netty.checkHeartBeat").equals("0")){
+        if (!environment.getProperty("netty.checkHeartBeat").equals("0")) {
             // 开启心跳监测线程
             Thread heartCheck = new Thread(new HeartBeatChecker(ctx.channel()));
             heartCheck.start();
@@ -105,19 +170,23 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
-        String clientIp = client.getAddress().getHostAddress();
-        LOGGER_WARN.info("【服务端】{}已从服务端断开,通道编号:{}", clientIp, ctx.channel().hashCode());
+    public void handlerRemoved0(ChannelHandlerContext ctx) {
+//        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
+//        String clientIp = client.getAddress().getHostAddress();
+        LOGGER_WARN.info("【服务端】{}已从服务端断开,通道编号:{}", "二级系统", ctx.channel().hashCode());
+        ctx.close();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // 记录错误信息
         LOGGER_WARN.error("【服务端】连接异常捕捉:", cause);
-
         // 内部出错不关闭与客户端建立的连接
         //ctx.close();
+        offset = 0;
+        msgBuf = null;
+        headerBuf = null;
+        headerOffset = 0;
     }
 
     /**
@@ -184,6 +253,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             // 更新统计表
             connTotalNumDao.updateTotalNum("RE");
         }
+        offset = 0;
+        msgBuf = null;
+        headerBuf = null;
+        headerOffset = 0;
     }
 
     private String getSysNameByCode(String sysCode) {

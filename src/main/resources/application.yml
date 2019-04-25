@@ -8,6 +8,7 @@ netty:
   remote:
     addr: ${NETTY_REMOTE_ADDR:169.254.65.221}
     port: ${NETTY_REMOTE_PORT:7879}
+  checkHeartBeat: ${HEART_BEAT_CHECK:0}
 
 spring:
   datasource:
@@ -23,6 +24,3 @@ spring:
       read-only: false
   application:
     name: conn-netty-service
-
-
-

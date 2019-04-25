@@ -23,6 +23,6 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         // 配置服务端消息处理器
-        pipeline.addLast(new NettyServerHandler());
+        pipeline.addLast(new NettyServerByteHandler());
     }
 }
