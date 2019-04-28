@@ -23,8 +23,8 @@ public class Constant {
     // 消息头长度
     public static final int HEAD_LEN = 20;
 
-    // 心跳超时时间(ms) - 调整为120秒
-    public static final int TIMEOUT_MS = 120000;
+    // 心跳超时时间(ms) - 调整为150秒
+    public static final int TIMEOUT_MS = 150000;
 
     // 获取循环序号
     public static short getSeqNo(){
