@@ -174,6 +174,7 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
 //        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
 //        String clientIp = client.getAddress().getHostAddress();
         LOGGER_WARN.info("【服务端】{}已从服务端断开,通道编号:{}", "二级系统", ctx.channel().hashCode());
+        ctx.channel().close();
         ctx.close();
     }
 
@@ -183,6 +184,8 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
         LOGGER_WARN.error("【服务端】连接异常捕捉:", cause);
         // 内部出错不关闭与客户端建立的连接
         //ctx.close();
+        ctx.channel().close();
+        ctx.close();
         offset = 0;
         msgBuf = null;
         headerBuf = null;
