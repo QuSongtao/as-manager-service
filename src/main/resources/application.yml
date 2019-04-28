@@ -8,7 +8,10 @@ netty:
   remote:
     addr: ${NETTY_REMOTE_ADDR:169.254.65.221}
     port: ${NETTY_REMOTE_PORT:7879}
+  # 是否检测心跳 0否 1是
   checkHeartBeat: ${HEART_BEAT_CHECK:0}
+  # 向外发送的心跳频率,默认120秒发一次
+  heartFPS: ${HEART_SNED_FPS:120000}
 
 spring:
   datasource:
