@@ -56,7 +56,7 @@ public class NettyClient {
             // 等待连接被关闭,执行如下
             f.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOGGER_WARN.error("【客户端】通信客户端组件异常:", e);
+            LOGGER_WARN.error("【客户端】通信客户端组件异常:", e.getMessage());
         } finally {
             workerGroup.shutdownGracefully();
 
