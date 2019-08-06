@@ -18,11 +18,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.UUID;
@@ -34,7 +31,11 @@ import java.util.UUID;
  *
  * @author qust
  * @version 1.0 20180918
+ *
+ * 废弃类-替换为NettyServerByteHandler处理客户端消息
  */
+
+@Deprecated
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerHandler.class);
