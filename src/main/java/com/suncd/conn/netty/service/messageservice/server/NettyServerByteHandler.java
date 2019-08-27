@@ -1,11 +1,9 @@
 package com.suncd.conn.netty.service.messageservice.server;
 
-import com.suncd.conn.netty.dao.ConnConfSyscodeDao;
-import com.suncd.conn.netty.dao.ConnRecvMainDao;
-import com.suncd.conn.netty.dao.ConnRecvMsgDao;
-import com.suncd.conn.netty.dao.ConnTotalNumDao;
+import com.suncd.conn.netty.dao.*;
 import com.suncd.conn.netty.entity.ConnConfSyscode;
 import com.suncd.conn.netty.entity.ConnRecvMain;
+import com.suncd.conn.netty.entity.ConnRecvMainHis;
 import com.suncd.conn.netty.entity.ConnRecvMsg;
 import com.suncd.conn.netty.system.constants.Constant;
 import com.suncd.conn.netty.utils.ByteUtils;
@@ -19,6 +17,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.util.Date;
 import java.util.List;
@@ -40,6 +39,7 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
     private ConnRecvMainDao connRecvMainDao = SpringUtil.getBean(ConnRecvMainDao.class);
     private ConnRecvMsgDao connRecvMsgDao = SpringUtil.getBean(ConnRecvMsgDao.class);
     private ConnConfSyscodeDao connConfSyscodeDao = SpringUtil.getBean(ConnConfSyscodeDao.class);
+    private ConnRecvMainHisDao connRecvMainHisDao = SpringUtil.getBean(ConnRecvMainHisDao.class);
     private Environment environment = SpringUtil.getBean(Environment.class);
 
     // 完整消息包括报文头和报文体
@@ -217,11 +217,13 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
                     ack.writeBytes(szHeader.toByte());
                     ctx.writeAndFlush(ack);
 
+                    String msgId = UUID.randomUUID().toString();
+                    String mainId = UUID.randomUUID().toString();
+                    String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
+                    String telId = msg.substring(0, 4);
                     try {
                         // 4.插入接收消息表
                         // 取消息内容字符串
-                        String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
-                        String msgId = UUID.randomUUID().toString();
                         ConnRecvMsg connRecvMsg = new ConnRecvMsg();
                         connRecvMsg.setId(msgId);
                         connRecvMsg.setCreateTime(new Date());
@@ -229,9 +231,8 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
                         connRecvMsgDao.insertSelective(connRecvMsg);
 
                         // 5.插入接收总表
-                        String telId = msg.substring(0, 4);
                         ConnRecvMain connRecvMain = new ConnRecvMain();
-                        connRecvMain.setId(UUID.randomUUID().toString());
+                        connRecvMain.setId(mainId);
                         connRecvMain.setMsgId(msgId);
                         connRecvMain.setRecvTime(new Date());
                         connRecvMain.setTelId(telId);
@@ -246,8 +247,22 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
 
                         // 7.记录接收日志
                         LOGGER.info(msg);
-                    } catch (Exception e) {
+                    } catch (UncategorizedSQLException e) {
                         CommonUtil.SYSLOGGER.error(e.getMessage(), e);
+                        // 触发器处理异常的消息,记录到接收历史表
+                        ConnRecvMainHis connRecvMainHis = new ConnRecvMainHis();
+                        connRecvMainHis.setTelId(telId);
+                        connRecvMainHis.setId(mainId);
+                        connRecvMainHis.setDealTime(new Date());
+                        connRecvMainHis.setRecvTime(new Date());
+                        connRecvMainHis.setMsgId(msgId);
+                        connRecvMainHis.setDes(e.getMessage());
+                        connRecvMainHis.setSender(Constant.SOCKET_SZ);
+                        connRecvMainHis.setSenderName(getSysNameByCode(Constant.SOCKET_SZ));
+                        connRecvMainHis.setReceiver(Constant.MES_CR);
+                        connRecvMainHis.setReceiverName(getSysNameByCode(Constant.MES_CR));
+                        connRecvMainHis.setDealFlag("9"); // 触发器处理异常
+                        connRecvMainHisDao.insertSelective(connRecvMainHis);
                     }
                 }
             }

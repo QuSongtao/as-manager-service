@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.suncd.conn.netty.dao.ConnRecvMainHisDao">
+    <resultMap id="BaseResultMap" type="com.suncd.conn.netty.entity.ConnRecvMainHis">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="telId" jdbcType="VARCHAR" property="telId"/>
+        <result column="sender" jdbcType="VARCHAR" property="sender"/>
+        <result column="senderName" jdbcType="VARCHAR" property="senderName"/>
+        <result column="receiver" jdbcType="VARCHAR" property="receiver"/>
+        <result column="receiverName" jdbcType="VARCHAR" property="receiverName"/>
+        <result column="msgId" jdbcType="CHAR" property="msgId"/>
+        <result column="recvTime" jdbcType="TIMESTAMP" property="recvTime"/>
+        <result column="dealFlag" jdbcType="CHAR" property="dealFlag"/>
+        <result column="dealTime" jdbcType="TIMESTAMP" property="dealTime"/>
+        <result column="des" jdbcType="VARCHAR" property="des"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+      id, telId, sender,senderName,receiver,receiverName, msgId, recvTime, dealFlag, dealTime, des
+    </sql>
+    <insert id="insertSelective" parameterType="com.suncd.conn.netty.entity.ConnRecvMainHis">
+        insert into conn_recv_main_his
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="telId != null">
+                telId,
+            </if>
+            <if test="msgId != null">
+                msgId,
+            </if>
+            <if test="recvTime != null">
+                recvTime,
+            </if>
+            <if test="dealFlag != null">
+                dealFlag,
+            </if>
+            <if test="dealTime != null">
+                dealTime,
+            </if>
+            <if test="des != null">
+                des,
+            </if>
+            <if test="sender != null">
+                sender,
+            </if>
+            <if test="senderName != null">
+                senderName,
+            </if>
+            <if test="receiver != null">
+                receiver,
+            </if>
+            <if test="receiverName != null">
+                receiverName,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=CHAR},
+            <if test="telId != null">
+                #{telId,jdbcType=VARCHAR},
+            </if>
+            <if test="msgId != null">
+                #{msgId,jdbcType=CHAR},
+            </if>
+            <if test="recvTime != null">
+                #{recvTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dealFlag != null">
+                #{dealFlag,jdbcType=CHAR},
+            </if>
+            <if test="dealTime != null">
+                #{dealTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="des != null">
+                #{des,jdbcType=VARCHAR},
+            </if>
+            <if test="sender != null">
+                #{sender,jdbcType=VARCHAR},
+            </if>
+            <if test="senderName != null">
+                #{senderName,jdbcType=VARCHAR},
+            </if>
+            <if test="receiver != null">
+                #{receiver,jdbcType=VARCHAR},
+            </if>
+            <if test="receiverName != null">
+                #{receiverName,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+</mapper>
