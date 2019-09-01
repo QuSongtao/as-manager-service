@@ -50,6 +50,14 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
     private byte[] headerBuf;
     // 报文头被截断时的偏移量
     private int headerOffset = 0;
+    // 缓存电文ID
+    private String tempTelId;
+    // 缓存电文数据长度
+    private short tempDataLen;
+    // 缓存消息序号
+    private short tempSeqNo;
+    // 缓存消息时间戳
+    private int tempMsgTime;
 
     /**
      * 消息解码器
@@ -156,7 +164,7 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx)  {
+    public void channelActive(ChannelHandlerContext ctx) {
 //        InetSocketAddress client = (InetSocketAddress) ctx.channel().remoteAddress();
 //        String clientIp = client.getAddress().getHostAddress();
         LOGGER_WARN.info("【服务端】{}已连接到服务端,通道编号:{}", "二级系统", ctx.channel().hashCode());
@@ -219,11 +227,30 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
 
                     String msgId = UUID.randomUUID().toString();
                     String mainId = UUID.randomUUID().toString();
+                    // 截取消息内容(字符串格式)
                     String msg = new String(ByteUtils.subBytes(recordBytes, Constant.HEAD_LEN, recordBytes.length - Constant.HEAD_LEN));
                     String telId = msg.substring(0, 4);
+
+                    // 3.1 判断前后两条消息是否为重复消息,重复则直接丢弃
+                    // 判断条件4个：电文ID(telId)、数据长度(dataLen)、消息序号(seqNo)、时间戳(msgTime)
+                    if (this.tempTelId.equals(telId) && this.tempDataLen == recvHeader.getDataLen() && this.tempSeqNo == recvHeader.getSeqNo() && this.tempMsgTime == recvHeader.getMsgTime()) {
+                        LOGGER_WARN.warn("重复消息丢弃!");
+                        // 更新缓存数据
+                        this.tempTelId = telId;
+                        this.tempDataLen = recvHeader.getDataLen();
+                        this.tempSeqNo = recvHeader.getSeqNo();
+                        this.tempMsgTime = recvHeader.getMsgTime();
+                        // 返回,等待处理下一条数据
+                        return;
+                    }
+                    // 3.2 更新缓存数据
+                    this.tempTelId = telId;
+                    this.tempDataLen = recvHeader.getDataLen();
+                    this.tempSeqNo = recvHeader.getSeqNo();
+                    this.tempMsgTime = recvHeader.getMsgTime();
+
                     try {
                         // 4.插入接收消息表
-                        // 取消息内容字符串
                         ConnRecvMsg connRecvMsg = new ConnRecvMsg();
                         connRecvMsg.setId(msgId);
                         connRecvMsg.setCreateTime(new Date());
