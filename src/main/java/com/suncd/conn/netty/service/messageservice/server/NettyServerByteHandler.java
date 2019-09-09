@@ -51,13 +51,13 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
     // 报文头被截断时的偏移量
     private int headerOffset = 0;
     // 缓存电文ID
-    private String tempTelId;
+    private String tempTelId = "";
     // 缓存电文数据长度
-    private short tempDataLen;
+    private short tempDataLen = 0;
     // 缓存消息序号
-    private short tempSeqNo;
+    private short tempSeqNo = 0;
     // 缓存消息时间戳
-    private int tempMsgTime;
+    private int tempMsgTime = 0;
 
     /**
      * 消息解码器
