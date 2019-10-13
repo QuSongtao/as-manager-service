@@ -35,11 +35,14 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
     // 日志
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerByteHandler.class);
     private static final Logger LOGGER_WARN = LoggerFactory.getLogger("warnAndErrorLogger");
+    private static final Logger LOSER_LOGGER = LoggerFactory.getLogger("skLoserLogger");
+
     private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
     private ConnRecvMainDao connRecvMainDao = SpringUtil.getBean(ConnRecvMainDao.class);
     private ConnRecvMsgDao connRecvMsgDao = SpringUtil.getBean(ConnRecvMsgDao.class);
     private ConnConfSyscodeDao connConfSyscodeDao = SpringUtil.getBean(ConnConfSyscodeDao.class);
     private ConnRecvMainHisDao connRecvMainHisDao = SpringUtil.getBean(ConnRecvMainHisDao.class);
+    private SimpleDao simpleDao = SpringUtil.getBean(SimpleDao.class);
     private Environment environment = SpringUtil.getBean(Environment.class);
 
     // 完整消息包括报文头和报文体
@@ -209,6 +212,10 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
      * @param recordBytes 单条消息(包括消息头和消息体)
      */
     private void ackAndSave(ChannelHandlerContext ctx, byte[] recordBytes) {
+        offset = 0;
+        msgBuf = null;
+        headerBuf = null;
+        headerOffset = 0;
         // 1.判断数据长度是否足够
         if (recordBytes.length >= Constant.HEAD_LEN) {
             SzHeader recvHeader = MsgCreator.createRecvHeader(recordBytes);
@@ -248,6 +255,15 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
                     this.tempDataLen = recvHeader.getDataLen();
                     this.tempSeqNo = recvHeader.getSeqNo();
                     this.tempMsgTime = recvHeader.getMsgTime();
+
+                    // 判断数据库操作是否正常
+                    try {
+                        simpleDao.query("SELECT 1 FROM DUAL");
+                    } catch (Exception e) {
+                        LOSER_LOGGER.info(msg);
+                        LOGGER_WARN.error("数据库异常,丢失消息记录至特定文件", e);
+                        return;
+                    }
 
                     try {
                         // 4.插入接收消息表
@@ -294,14 +310,11 @@ public class NettyServerByteHandler extends ByteToMessageDecoder {
                 }
             }
         } else {
-            LOGGER_WARN.warn("收到消息长度的长度不够!");
+            LOGGER_WARN.warn("收到消息长度不够!");
             // 更新统计表
             connTotalNumDao.updateTotalNum("RE");
         }
-        offset = 0;
-        msgBuf = null;
-        headerBuf = null;
-        headerOffset = 0;
+
     }
 
     private String getSysNameByCode(String sysCode) {

@@ -95,11 +95,38 @@
             <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
+    <!-- Socket消息接收后,因数据库异常将消息记录至特定日志文件 -->
+    <appender name="skLoserAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>logs/socket/loserLog/skLoser_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!--保留时间,单位:天-->
+            <maxHistory>${MAX_LOG_HISTORY:-30}</maxHistory>
+            <CleanHistoryOnStart>true</CleanHistoryOnStart>
+            <!--<maxFileSize>10MB</maxFileSize>-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 10MB -->
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${MSG_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
 
     <!-- 异常及警告输出到系统日志中 -->
     <logger name="com.suncd.conn" additivity="false">
         <appender-ref ref="StdoutAppender"/>
         <appender-ref ref="sysLogAppender"/>
+    </logger>
+
+    <!-- 接收消息因数据库异常时,存入特定日志文件 -->
+    <logger name="skLoserLogger" additivity="false">
+        <appender-ref ref="skLoserAppender"/>
     </logger>
 
     <!-- 发送消息记录到发送日志中 -->
