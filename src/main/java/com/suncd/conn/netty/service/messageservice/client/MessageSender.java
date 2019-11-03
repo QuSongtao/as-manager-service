@@ -79,13 +79,15 @@ public class MessageSender implements Runnable {
                     } else {
                         int pushTime = (int) (new Date().getTime() / 1000); // 时间标记
                         short seqNo = Constant.getSeqNo(); // 循环发送序号
-                        // 2.更新发送总表数据
-                        connSendMain.setPushLongTime(pushTime);
-                        connSendMain.setPushSeqNo((int) seqNo);
-                        connSendMainDao.updateByPrimaryKeySelective(connSendMain);
+                        if(connSendMain.getPushLongTime() == null || connSendMain.getPushSeqNo() == null || connSendMain.getPushLongTime() == 0 || connSendMain.getPushSeqNo() == 0){
+                            // 2.更新发送总表数据
+                            connSendMain.setPushLongTime(pushTime);
+                            connSendMain.setPushSeqNo((int) seqNo);
+                            connSendMainDao.updateByPrimaryKeySelective(connSendMain);
 
-                        // 3.发送消息
-                        sendMsg(connSendMsg.getMsgTxt(), pushTime, seqNo);
+                            // 3.发送消息
+                            sendMsg(connSendMsg.getMsgTxt(), pushTime, seqNo);
+                        }
                     }
                 }
             } catch (Exception e) {
