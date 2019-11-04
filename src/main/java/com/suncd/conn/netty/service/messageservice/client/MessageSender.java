@@ -15,6 +15,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ public class MessageSender implements Runnable {
     private ConnSendMsgDao connSendMsgDao = SpringUtil.getBean(ConnSendMsgDao.class);
     private ConnSendMainHisDao connSendMainHisDao = SpringUtil.getBean(ConnSendMainHisDao.class);
     private ConnTotalNumDao connTotalNumDao = SpringUtil.getBean(ConnTotalNumDao.class);
+    private Environment environment = SpringUtil.getBean(Environment.class);
 
     private Channel channel;
 
@@ -41,15 +43,20 @@ public class MessageSender implements Runnable {
     @Override
     public void run() {
         boolean running = true;
+        // 间隔频率,单位:毫秒
+        int fps = Integer.parseInt(environment.getProperty("netty.sendWaitTime"));
         while (running) {
             if (!this.channel.isActive()) {
                 running = false;
                 continue;
             }
             try {
+                // 计数器
+                int records = 0;
                 // 1.获取待发电文
                 List<ConnSendMain> connSendMains = connSendMainDao.selectByReceiver(Constant.SOCKET_SZ);
                 for (ConnSendMain connSendMain : connSendMains) {
+                    records++;
                     ConnSendMsg connSendMsg = connSendMsgDao.selectByPrimaryKey(connSendMain.getMsgId());
 
                     if (null == connSendMsg || null == connSendMsg.getMsgTxt() || connSendMsg.getMsgTxt().length() < 5) {
@@ -79,7 +86,7 @@ public class MessageSender implements Runnable {
                     } else {
                         int pushTime = (int) (new Date().getTime() / 1000); // 时间标记
                         short seqNo = Constant.getSeqNo(); // 循环发送序号
-                        if(connSendMain.getPushLongTime() == null || connSendMain.getPushSeqNo() == null || connSendMain.getPushLongTime() == 0 || connSendMain.getPushSeqNo() == 0){
+                        if (connSendMain.getPushLongTime() == null || connSendMain.getPushSeqNo() == null || connSendMain.getPushLongTime() == 0 || connSendMain.getPushSeqNo() == 0) {
                             // 2.更新发送总表数据
                             connSendMain.setPushLongTime(pushTime);
                             connSendMain.setPushSeqNo((int) seqNo);
@@ -87,6 +94,15 @@ public class MessageSender implements Runnable {
 
                             // 3.发送消息
                             sendMsg(connSendMsg.getMsgTxt(), pushTime, seqNo);
+
+                            // 每条记录间隔5秒发送
+                            if (records < connSendMains.size()) {
+                                try {
+                                    Thread.sleep(fps);
+                                } catch (InterruptedException e) {
+                                    LOGGER_WARN.error(e.getMessage());
+                                }
+                            }
                         }
                     }
                 }
