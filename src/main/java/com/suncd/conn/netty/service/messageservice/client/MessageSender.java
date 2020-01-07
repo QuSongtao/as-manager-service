@@ -124,5 +124,9 @@ public class MessageSender implements Runnable {
         ByteBuf bf = this.channel.alloc().buffer(data.length);
         bf.writeBytes(data);
         this.channel.writeAndFlush(bf);
+
+        // 记录预发送日志 - 2020-01-07 09:55
+        LOGGER.info("消息发送完成,等待回执,消息标识:{},消息内容: {}", pushTime, msg);
+
     }
 }
